@@ -6,7 +6,7 @@
 // database's row-level security (supabase/schema.sql) is what keeps each
 // student's planner private.
 
-export const SUPABASE_URL = '';
-export const SUPABASE_ANON_KEY = '';
+export const SUPABASE_URL = 'https://fknaqhlakprrbfhmzsqf.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_Ejg2p1Uy8iS4-BqscWtmTA_CexUeKTm';
 
 export const SUPABASE_JS_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/+esm';
