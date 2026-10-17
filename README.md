@@ -29,11 +29,11 @@ npm start        # serves at http://localhost:4173
 npm test         # unit tests (Node 20+)
 ```
 
-To publish it, turn on **GitHub Pages** for this repository (Settings → Pages → deploy from the `main` branch, root folder). Students open the link on their phone and tap **Share → Add to Home Screen**.
+To publish it, turn on **GitHub Pages** for this repository (Settings → Pages → *Deploy from a branch*, pick the branch with the app code and the `/ (root)` folder). Students open the link on their phone and tap **Share → Add to Home Screen**.
 
 ## Accounts
 
-Accounts use [Supabase](https://supabase.com) (free plan). Follow [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) to create the project, run `supabase/schema.sql`, and paste the project URL and anon key into `js/config.js`. With those left empty, the planner works on each device without accounts.
+Accounts use [Supabase](https://supabase.com) (free plan). Follow [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) to create the project, run `supabase/schema.sql`, and paste the project URL and publishable (or legacy anon) key into `js/config.js`. With those left empty, the planner works on each device without accounts.
 
 ## Schoology sync
 
@@ -51,7 +51,7 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly, so the ap
 | `js/store.js` | Saved data (localStorage), with every change stamped for syncing |
 | `js/sync-merge.js` | Merges this device's planner with the account copy |
 | `js/account.js` | Sign-in and sync with Supabase |
-| `js/config.js` | Supabase project URL and anon key |
+| `js/config.js` | Supabase project URL and publishable key |
 | `supabase/schema.sql` | Database table and privacy rules |
 | `js/views/*` | Today/Day, Week, Month, To-Do, Settings, onboarding |
 

@@ -1,8 +1,9 @@
 // Account settings. Fill these in from your Supabase project
-// (Project Settings → API) to turn on sign-in and sync. Leave them empty
+// (Project Settings → API Keys) to turn on sign-in and sync. The key can be
+// the newer "publishable" key (sb_publishable_...) or the legacy anon key. Leave them empty
 // and the planner works on this device only.
 //
-// The anon key is meant to be public: it's shipped to every browser, and the
+// This key is meant to be public: it's shipped to every browser, and the
 // database's row-level security (supabase/schema.sql) is what keeps each
 // student's planner private.
 

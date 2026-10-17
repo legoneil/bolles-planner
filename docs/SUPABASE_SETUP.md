@@ -32,18 +32,18 @@ This creates a `planners` table with one private row per student. Row-level secu
 
 ## 4. Connect the app
 
-1. Open **Project Settings → API** (it may be called *Data API* / *API Keys*).
-2. Copy the **Project URL** and the **anon / public** key.
+1. Open **Project Settings → API Keys** (older dashboards: *API*).
+2. Copy the **Project URL** and the **publishable** key (`sb_publishable_...`). On older projects, the **anon / public** key works the same way.
 3. Paste them into [`js/config.js`](../js/config.js):
 
    ```js
    export const SUPABASE_URL = 'https://abcdefgh.supabase.co';
-   export const SUPABASE_ANON_KEY = 'eyJhbGciOi...';
+   export const SUPABASE_ANON_KEY = 'sb_publishable_...';
    ```
 
    You can also paste them to Claude and it will do this step for you.
 
-> **Never** put the `service_role` key (or "secret" key) in the app or send it to anyone. It bypasses all the privacy rules. The `anon` key is the only one the app needs.
+> **Never** put the secret key (`sb_secret_...`, or the legacy `service_role` key) in the app or send it to anyone. It bypasses all the privacy rules. The publishable key is the only one the app needs.
 
 ## Before lots of students sign up
 
