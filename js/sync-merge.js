@@ -6,7 +6,7 @@
 // profile, settings and Schoology link merge as whole sections.
 
 const COLLECTIONS = ['assignments', 'activities'];
-const SECTIONS = ['profile', 'settings'];
+const SECTIONS = ['profile', 'settings', 'grades'];
 
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 const strip = ({ updatedAt, ...rest }) => rest;

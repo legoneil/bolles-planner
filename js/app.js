@@ -57,7 +57,9 @@ import {
   uid,
   update,
 } from './store.js';
+import { extension, initGrades, onExtensionChange } from './grades.js';
 import { renderDay } from './views/day.js';
+import { renderGrades } from './views/grades.js';
 import { renderFriendCompare, renderFriends } from './views/friends.js';
 import { renderMonth } from './views/month.js';
 import { renderOnboarding } from './views/onboarding.js';
@@ -94,7 +96,7 @@ function render() {
     $view.innerHTML = renderOnboarding(ui.onboarding, { accounts: accountsEnabled && account.status !== 'signed-in' });
     return;
   }
-  const ctx = { ...makeContext(state), account };
+  const ctx = { ...makeContext(state), account, extension };
   const { name, arg } = route();
   const valid = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s ?? '');
   let html;
@@ -114,6 +116,9 @@ function render() {
     case 'settings':
       html = renderSettings(ctx);
       break;
+    case 'grades':
+      html = renderGrades(ctx, extension);
+      break;
     case 'friends':
       html = renderFriends(ctx, friends, account);
       loadFriends();
@@ -127,7 +132,7 @@ function render() {
     default:
       html = renderDay(ctx, ctx.today);
   }
-  const tab = name === 'day' ? 'today' : name === 'friend' ? 'friends' : name;
+  const tab = name === 'day' || name === 'grades' ? 'today' : name === 'friend' ? 'friends' : name;
   for (const a of $nav.querySelectorAll('a')) a.toggleAttribute('aria-current', a.dataset.tab === tab);
   const scroll = window.scrollY;
   $view.innerHTML = html;
@@ -312,6 +317,13 @@ const actions = {
     else resetState();
     ui.onboarding = { step: 1, campus: null, grade: null, classes: defaultClasses() };
     location.hash = '#/today';
+  },
+  'clear-grades': () => {
+    if (confirm('Remove your grades from the planner (this device and your account)? The extension will add them again next time you open Schoology unless you remove it.')) {
+      update((s) => {
+        s.grades = null;
+      });
+    }
   },
   'friends-refresh': () => loadFriends({ force: true }),
   'friend-accept': (el) => friendAction(() => respond(el.dataset.id, true), 'Friend added'),
@@ -638,6 +650,8 @@ onFriendsChange(() => {
   if (name === 'friends' || name === 'friend') render();
 });
 initFriends();
+initGrades();
+onExtensionChange(() => ['grades', 'settings'].includes(route().name) && render());
 initAccount({ onPasswordRecovery: () => openSheet(newPasswordForm()) });
 
 // Keep "now / next" fresh and roll over at midnight.

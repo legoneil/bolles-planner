@@ -1,5 +1,6 @@
 import { addDays, diffDays, formatLongDate, formatRange, formatTime, minutes, nowMinutes, relativeDay } from '../dates.js';
 import { plannerDay } from '../planner.js';
+import { gradesCard } from './grades.js';
 import { nowAndNext } from '../schedule.js';
 import { assignmentItem, blockRow, className, emptyState, esc, eventChips, letterBadge, statusLabel } from '../ui.js';
 import { loadLevel, overloadAlerts, testsByDate } from '../workload.js';
@@ -66,7 +67,7 @@ export function renderDay(ctx, date) {
       <h2 class="sr-only">Schedule</h2>
       ${schedule}
     </section>
-    ${unplaced}${upcoming}`;
+    ${unplaced}${upcoming}${isToday ? gradesCard(ctx) : ''}`;
 }
 
 function renderNowCard(current, next, nowMin) {

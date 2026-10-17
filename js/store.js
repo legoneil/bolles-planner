@@ -44,6 +44,7 @@ const initialState = () => ({
   activities: [], // { id, title, days: [0-6], start, end, from, to, color, notes }
   schoology: { url: '', lastSync: null, lastError: null, overrides: {} },
   settings: { theme: 'auto', proxyUrl: '' },
+  grades: null, // from the browser extension; private, never shared with friends
   ownerId: null, // account this device's data belongs to, if signed in
   stamps: {},
   tombstones: { assignments: {}, activities: {} },

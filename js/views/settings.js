@@ -49,7 +49,8 @@ export function renderSettings(ctx) {
 
     <section class="card">
       <h2>Schoology</h2>
-      <p class="muted">Paste your Schoology calendar link once and your assignments and tests stay up to date: they sync every time you open the planner. In Schoology, open your <b>Calendar</b> and use its export (iCal) option to copy the link. It usually starts with <code>webcal://bolles.schoology.com</code>.</p>
+      ${connectCard(ctx)}
+      <p class="muted">${ctx.state.schoology.api?.accessToken ? 'Connected accounts sync automatically, so you don\u2019t need a calendar link.' : 'Or paste your Schoology calendar link once'} and your assignments and tests stay up to date: they sync every time you open the planner. In Schoology, open your <b>Calendar</b> and use its export (iCal) option to copy the link. It usually starts with <code>webcal://bolles.schoology.com</code>.</p>
       ${ctx.account?.status === 'signed-out' ? '<p class="muted small"><b>Sign in</b> (top of Settings) to sync automatically. Without an account, use the upload option below.</p>' : ''}
       <form class="inline-form" data-form="schoology">
         <input type="url" name="url" inputmode="url" placeholder="webcal://bolles.schoology.com/calendar/feed/ical/..." value="${esc(sgy.url)}" aria-label="Schoology calendar link" />
@@ -66,6 +67,16 @@ export function renderSettings(ctx) {
           <button class="btn secondary" type="submit">Save</button>
         </form>
       </details>`}
+    </section>
+
+    <section class="card">
+      <h2>Grades</h2>
+      ${state.grades?.courses?.length
+        ? `<p class="muted">${state.grades.courses.length} courses from Schoology, updated ${esc(new Date(state.grades.readAt).toLocaleString())}. <button class="link-btn" data-nav="#/grades">See grades</button></p>`
+        : '<p class="muted">Bring in your Schoology grades with the <b>Bolles Planner Grades</b> Chrome extension on your laptop.</p>'}
+      <p class="muted small">${ctx.extension?.installed ? `Extension connected${ctx.extension.status ? `: ${esc(ctx.extension.status.message)}` : ''}.` : 'Extension not detected in this browser.'}
+        <a href="https://github.com/legoneil/bolles-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">How to install</a></p>
+      ${state.grades ? '<button class="link-btn danger small" data-action="clear-grades">Remove grades from my planner</button>' : ''}
     </section>
 
     <section class="card">
@@ -159,6 +170,41 @@ function accountCard(account) {
       <button class="btn secondary small" data-action="open-auth" data-mode="signup">Create account</button>
     </div>`}
   </section>`;
+}
+
+function connectCard(ctx) {
+  const account = ctx.account;
+  if (!account || account.status === 'disabled') return '';
+  const api = ctx.state.schoology.api;
+  if (!api?.accessToken) {
+    if (account.status !== 'signed-in') return '';
+    return `<div class="connect-box">
+      <p><b>Connect Schoology</b> to import your courses, assignments and grades automatically. You approve it on Schoology's own site; Bolles Planner never sees your password.</p>
+      <button class="btn" data-action="sgy-connect">Connect Schoology</button>
+    </div>`;
+  }
+  const classes = [...(ctx.profile.classes ?? [])].sort((a, b) => a.period - b.period);
+  const items = ctx.state.assignments.filter((a) => String(a.id).startsWith('sgy:api:')).length;
+  return `<div class="connect-box connected">
+    <p><b>Connected${api.user?.name ? ` as ${esc(api.user.name)}` : ''}</b></p>
+    <p class="muted small">${api.lastSync ? `Synced ${esc(new Date(api.lastSync).toLocaleString())} · ${items} items` : 'Syncing…'}</p>
+    ${api.lastError ? `<p class="error small">${esc(api.lastError)}</p>` : ''}
+    <div class="btn-row">
+      <button class="btn secondary small" data-action="sgy-sync">Sync now</button>
+      <button class="btn secondary small" data-nav="#/grades">Grades</button>
+      <button class="btn secondary small" data-action="sgy-disconnect">Disconnect</button>
+    </div>
+    ${api.sections?.length ? `<details class="section-map" ${api.sections.some((x) => !api.sectionMap?.[x.id]) ? 'open' : ''}>
+      <summary>Match your Schoology courses to your periods</summary>
+      <ul class="plain-list">${api.sections
+        .map((sec) => `<li><label>${esc(sec.course)}${sec.section ? ` <small class="muted">${esc(sec.section)}</small>` : ''}
+          <select data-action="sgy-map" data-section="${esc(sec.id)}">
+            <option value="">Not one of my periods</option>
+            ${classes.map((c) => `<option value="${esc(c.id)}" ${api.sectionMap?.[sec.id] === c.id ? 'selected' : ''}>P${c.period} · ${esc(className(c))}</option>`).join('')}
+          </select></label></li>`)
+        .join('')}</ul>
+    </details>` : ''}
+  </div>`;
 }
 
 const lunchText = (c) => (c.lunch === 'first' ? 'Lunch first in 3rd block' : c.lunch === 'second' ? 'Class first in 3rd block' : 'Lunch order not set');

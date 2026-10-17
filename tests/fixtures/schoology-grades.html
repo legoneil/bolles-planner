@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- An APPROXIMATION of Schoology's /grades/grades page, written from memory of
+     its markup (gradebook-course, report-row, awarded-grade, ...). Used to test
+     the extension end to end; the real page may differ. -->
+<html><head><title>Grades | Schoology</title></head>
+<body>
+<div id="main"><div id="main-inner">
+  <div class="gradebook-course hierarchical-grading-report" id="s-js-gradebook-course-111">
+    <div class="gradebook-course-title"><a href="/course/111/materials">AP Biology: Section 3</a>
+      <span class="course-grade-value"><span class="awarded-grade"><span class="numeric-grade">94.2%</span></span></span></div>
+    <div class="gradebook-course-grades"><table role="presentation" class="gradebook-table"><tbody>
+      <tr class="report-row period-row"><th scope="row"><span class="title">Quarter 1</span></th><td class="grade-column"><span class="awarded-grade"><span class="numeric-grade">95%</span></span></td></tr>
+      <tr class="report-row category-row"><th><span class="title">Tests (50%)</span></th><td class="grade-column"></td></tr>
+      <tr class="report-row item-row" data-id="9001"><th><span class="title"><a href="/assignment/9001">Chapter 5 Test</a></span> <span class="due-date">Due 10/02/26 11:59pm</span></th>
+        <td class="grade-column"><span class="awarded-grade"><span class="rounded-grade" title="46.5">46.5</span></span><span class="max-grade"> / 50</span></td></tr>
+      <tr class="report-row category-row"><th><span class="title">Labs (30%)</span></th><td class="grade-column"></td></tr>
+      <tr class="report-row item-row" data-id="9002"><th><span class="title"><a href="/assignment/9002">Enzyme Lab</a></span></th>
+        <td class="grade-column"><span class="awarded-grade"><span class="rounded-grade" title="18">18</span></span><span class="max-grade"> / 20</span></td></tr>
+      <tr class="report-row item-row" data-id="9003"><th><span class="title"><a href="/assignment/9003">Osmosis Lab</a></span></th>
+        <td class="grade-column"><span class="exception-icon">Missing</span><span class="max-grade"> / 20</span></td></tr>
+    </tbody></table></div>
+  </div>
+  <div class="gradebook-course hierarchical-grading-report" id="s-js-gradebook-course-222">
+    <div class="gradebook-course-title"><a href="/course/222/materials">English 10 Honors: Dale</a></div>
+    <div class="gradebook-course-grades"><table class="gradebook-table"><tbody>
+      <tr class="report-row period-row"><th><span class="title">Quarter 1</span></th><td class="grade-column"><span class="awarded-grade">B+</span></td></tr>
+      <tr class="report-row item-row" data-id="9100"><th><span class="title"><a href="/assignment/9100">Gatsby Essay</a></span></th>
+        <td class="grade-column"><span class="awarded-grade"><span class="rounded-grade" title="88">88</span></span><span class="max-grade"> / 100</span></td></tr>
+    </tbody></table></div>
+  </div>
+</div></div>
+</body></html>

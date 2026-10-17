@@ -1266,6 +1266,127 @@ details summary {
   cursor: default;
 }
 
+/* ---------- Grades ---------- */
+
+.steps {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.grades-meta {
+  text-align: center;
+  margin: -6px 0 10px;
+}
+
+.course-list,
+.grade-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.course {
+  border-left: 4px solid var(--c);
+  padding-left: 10px;
+  margin-bottom: 8px;
+}
+
+.course summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  padding: 6px 0;
+}
+
+.course summary::-webkit-details-marker {
+  display: none;
+}
+
+.course-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-main small {
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.course-grade {
+  font-weight: 800;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.g-high { color: var(--ok); }
+.g-mid { color: var(--accent); }
+.g-low { color: var(--warn); }
+.g-alert { color: var(--danger); }
+
+.periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 8px;
+}
+
+.chip-static {
+  font-size: 0.78rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.grade-items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.88rem;
+}
+
+.gi-title {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-wrap: anywhere;
+}
+
+.gi-title small {
+  color: var(--muted);
+}
+
+.gi-score {
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.gi-status {
+  color: var(--danger);
+}
+
+.grade-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.grade-chip {
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border-left: 4px solid var(--c);
+  background: var(--surface-2);
+}
+
 /* ---------- Friends ---------- */
 
 .bullets {

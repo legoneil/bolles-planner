@@ -14,6 +14,7 @@ A student-made planner for The Bolles School. It knows every 2026-27 letter day,
 - **"Due next class":** picks the next date the class actually meets, skipping holidays and letter days without that period.
 - **Upper School lunch:** 3rd-block lunch order (lunch first or class first) is suggested from the planner's teacher list.
 - **Schoology:** paste your Schoology calendar (iCal) link once and assignments sync every time you open the planner (signed-in students), or upload the `.ics` file. Tests and quizzes are recognised from their titles and matched to your classes.
+- **Grades:** the *Bolles Planner Grades* Chrome extension reads your own Schoology grades page on your laptop and brings course grades, quarter grades and assignment scores into the planner (and to your phone). Private to you. See [docs/EXTENSION.md](docs/EXTENSION.md).
 - **Sports and clubs:** recurring or one-time activities show up on the schedule.
 - **Unplanned closures:** mark a hurricane day and that day's letter is skipped, as the school does.
 - **Calendar export:** a `.ics` file for Google/Apple Calendar (assignments, letter days, events, and optionally every class meeting).
@@ -59,6 +60,8 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly. For signe
 | `supabase/schema.sql` | Planner table and privacy rules |
 | `supabase/friends.sql` | Friends tables, privacy rules and functions |
 | `supabase/functions/schoology-ical/` | Edge Function that fetches Schoology calendar links |
+| `extension/` | Chrome extension that reads your Schoology grades page for the planner |
+| `js/grades.js` | Receives grades from the extension and matches courses to your classes |
 | `tests/support/supabase-sim.js` | Local Postgres stand-in for Supabase used by the tests |
 | `js/views/*` | Today/Day, Week, Month, To-Do, Settings, onboarding |
 
@@ -70,4 +73,4 @@ Add a new pair of data files for the year (letters, bell schedules, special days
 
 - Push notifications (export to your phone's calendar for reminders in the meantime).
 - Sharing assignments with classmates.
-- Grades from Schoology.
+- Grades on phones without a laptop (the extension needs Chrome on a computer).

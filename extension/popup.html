@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bolles Planner Grades</title>
+    <style>
+      :root { color-scheme: light dark; --accent: #1f4e9c; }
+      body { font: 14px/1.4 system-ui, -apple-system, sans-serif; margin: 0; padding: 14px; width: 290px; }
+      h1 { font-size: 15px; margin: 0 0 6px; }
+      p { margin: 6px 0; }
+      .muted { color: #6b7280; font-size: 12px; }
+      .ok { color: #16803c; font-weight: 600; }
+      .bad { color: #c0392b; font-weight: 600; }
+      button { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; background: transparent; font: inherit; cursor: pointer; }
+      button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+    </style>
+  </head>
+  <body>
+    <h1>Bolles Planner Grades</h1>
+    <p id="status" class="muted">Open your Schoology grades once to get started.</p>
+    <button class="primary" id="open-grades">Open my Schoology grades</button>
+    <button id="open-planner">Open Bolles Planner</button>
+    <button id="copy-debug" hidden>Copy debug info for Claude</button>
+    <p class="muted">Student-made, not an official Bolles or Schoology app. It only reads pages you can already see, and only shares them with your own planner.</p>
+    <script src="popup.js"></script>
+  </body>
+</html>

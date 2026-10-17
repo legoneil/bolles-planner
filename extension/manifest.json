@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Bolles Planner Grades",
+  "version": "0.1.0",
+  "description": "Brings your Schoology grades into Bolles Planner. Student-made; not affiliated with Bolles or Schoology.",
+  "permissions": ["storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://*.schoology.com/*"],
+      "js": ["parse-grades.js", "schoology.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://legoneil.github.io/bolles-planner/*", "http://localhost:4173/*"],
+      "js": ["planner.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+  },
+  "icons": { "16": "icons/16.png", "48": "icons/48.png", "128": "icons/128.png" }
+}
