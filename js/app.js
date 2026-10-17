@@ -483,12 +483,28 @@ document.addEventListener('change', async (e) => {
   if (form?.dataset.form === 'assignment') updateDueInfo(form, makeContext(getState()));
   if (form?.dataset.form === 'activity') syncActivityForm(form);
   if (form?.dataset.form === 'class' && el.name === 'lunch') el.dataset.touched = '1';
+  rememberOnboarding(el);
 });
 
 document.addEventListener('input', (e) => {
   const form = e.target.closest('form');
   if (form?.dataset.form === 'class' && e.target.name === 'teacher') updateLunchHint(form);
+  rememberOnboarding(e.target);
 });
+
+// Keep what's been typed during setup in the draft, so a re-render (e.g. the
+// account finishing loading) never wipes it.
+function rememberOnboarding(el) {
+  const form = el.closest?.('form')?.dataset.form;
+  const draft = ui.onboarding;
+  if (form === 'onboard-school') {
+    if (el.name === 'campus') draft.campus = el.value;
+    if (el.name === 'grade') draft.grade = Number(el.value) || null;
+  } else if (form === 'onboard-classes') {
+    const [, field, i] = el.name.match(/^(name|teacher|room|type)-(\d+)$/) ?? [];
+    if (field && draft.classes[i]) draft.classes[i][field] = el.value;
+  }
+}
 
 $sheet.addEventListener('click', (e) => {
   if (e.target === $sheet) closeSheet();
@@ -508,7 +524,7 @@ initAccount({ onPasswordRecovery: () => openSheet(newPasswordForm()) });
 // Keep "now / next" fresh and roll over at midnight.
 setInterval(() => {
   const { name } = route();
-  if (!$sheet.open && (name === 'today' || name === 'day' || name === '')) render();
+  if (!$sheet.open && getState().profile && (name === 'today' || name === 'day' || name === '')) render();
 }, 60_000);
 
 document.addEventListener('visibilitychange', () => {
