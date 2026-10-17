@@ -1,6 +1,8 @@
 # Turning on accounts (Supabase)
 
-Accounts let students sign in and see the same planner on their phone and laptop. The planner uses [Supabase](https://supabase.com) for this, and the free plan is enough. Setup takes about 10 minutes and you only do it once.
+Accounts let students sign in and see the same planner on their phone and laptop. The planner uses [Supabase](https://supabase.com) for this, and the free plan is enough. Setup takes about 20 minutes, including email (see *Before lots of students sign up*), and you only do it once.
+
+> **This project's live setup:** the site is at https://legoneil.github.io/bolles-planner/ (GitHub Pages from the `claude/zealous-fermat-gt2k97` branch; the repo is public because free GitHub Pages requires it). Supabase uses a publishable key and Gmail SMTP from `bollesplanner@gmail.com`.
 
 Until it's set up, the app still works but saves everything on each device only.
 
@@ -49,7 +51,39 @@ This creates a `planners` table with one private row per student. Row-level secu
 
 ## Before lots of students sign up
 
-- **Email limits:** Supabase's built-in email sender only sends a few emails per hour and is meant for testing. Once more than a handful of people are signing up, connect a free email service under **Authentication → Emails → SMTP Settings** (for example [Resend](https://resend.com), whose free tier is plenty).
+### Email (needed before anyone outside the project can sign up)
+
+Supabase's built-in email sender only delivers to people on the Supabase project's team. Everyone else gets *"Email address not authorized"*, so students can't confirm their accounts until custom SMTP is set up.
+
+**What this project uses: Gmail SMTP**
+
+1. A separate Gmail account just for the app: `bollesplanner@gmail.com`.
+2. On that account, turn on **2-Step Verification**, then create an **app password** (Google Account → Security → App passwords) named "Supabase".
+3. In Supabase, open **Authentication → Emails → SMTP Settings**, turn on **custom SMTP** and enter:
+
+   | Setting | Value |
+   | --- | --- |
+   | Sender email | `bollesplanner@gmail.com` |
+   | Sender name | `Bolles Planner` |
+   | Host | `smtp.gmail.com` |
+   | Port | `465` |
+   | Username | `bollesplanner@gmail.com` |
+   | Password | the app password (store it only in Supabase, never in the repo) |
+
+4. Save, then test it: send yourself a password-reset email from the app's sign-in screen and check that it arrives.
+
+Turning on custom SMTP raises Supabase's limit to 30 emails an hour. You can change that under **Authentication → Rate Limits**.
+
+**Limits to keep in mind**
+
+- Gmail sends about 500 emails a day, and a brand-new account may start lower.
+- Changing the Gmail account's password deletes its app passwords. Sign-up and password-reset emails stop until you make a new app password and paste it into Supabase.
+- Some confirmation emails may land in spam. Tell students to check there.
+
+**Switching to Resend later.** [Resend](https://resend.com) is the better long-term setup, but it needs a domain you own (for example `bollesplanner.com`, about $10–15 a year). On the free plan, without a verified domain, Resend only sends to your own address. A `github.io` address can't be verified. Once you have a domain, verify it in Resend, then swap the SMTP settings above for Resend's.
+
+### Other things to know
+
 - **Paused projects:** free projects pause after about a week with no activity (for example over summer). Resume it from the dashboard. No data is lost.
 - **Younger students:** some Middle School students are under 13. Accounts are optional, and the app works fully without one. If you want to promote accounts to Middle School students, check with a parent or the school first.
 
