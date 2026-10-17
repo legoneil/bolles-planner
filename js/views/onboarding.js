@@ -3,7 +3,7 @@ import { CLASS_TYPES } from '../store.js';
 import { esc, ordinal } from '../ui.js';
 
 // draft: { step, campus, grade, classes }
-export function renderOnboarding(draft) {
+export function renderOnboarding(draft, { accounts = false } = {}) {
   if (draft.step === 1) {
     return `
       <section class="onboard">
@@ -11,6 +11,7 @@ export function renderOnboarding(draft) {
         <h1>Bolles Planner</h1>
         <p class="lead">Your letter days, classes, homework and tests in one place. Set it up in about a minute.</p>
         <p class="muted small">Student-made. Not an official Bolles School app.</p>
+        ${accounts ? '<p class="have-account">Already set up on another device? <button class="link-btn" data-action="open-auth" data-mode="signin">Sign in</button></p>' : ''}
         <form data-form="onboard-school" class="stack">
           <fieldset>
             <legend>Which campus?</legend>

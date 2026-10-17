@@ -233,3 +233,50 @@ export function readActivity(form, existing) {
     color: existing?.color ?? '#64748b',
   };
 }
+
+// ---------------------------------------------------------------------------
+// Accounts
+
+const AUTH_TITLES = { signin: 'Sign in', signup: 'Create an account', reset: 'Reset your password' };
+
+export function authForm(mode = 'signin', { email = '', message = '' } = {}) {
+  return `
+    <form data-form="auth" data-mode="${mode}" class="sheet-form">
+      <header class="sheet-head"><h2>${AUTH_TITLES[mode]}</h2>
+        <button type="button" class="icon-btn" data-action="close-sheet" aria-label="Close">×</button></header>
+      ${mode === 'signup' ? '<p class="muted small">Your planner will be saved to your account so you can use it on your phone and your laptop.</p>' : ''}
+      ${mode === 'reset' ? '<p class="muted small">We’ll email you a link to choose a new password.</p>' : ''}
+      <label>Email <input type="email" name="email" required autocomplete="email" inputmode="email" value="${esc(email)}" /></label>
+      ${mode === 'reset' ? '' : `<label>Password <input type="password" name="password" required minlength="8"
+        autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}" /></label>`}
+      ${mode === 'signup' ? '<p class="muted small">At least 8 characters.</p>' : ''}
+      <p class="form-message" role="status" data-auth-message>${esc(message)}</p>
+      <button type="submit" class="btn">${mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send reset link'}</button>
+      <p class="auth-links small">
+        ${mode !== 'signin' ? '<button type="button" class="link-btn" data-action="open-auth" data-mode="signin">I have an account</button>' : '<button type="button" class="link-btn" data-action="open-auth" data-mode="signup">Create an account</button>'}
+        ${mode === 'signin' ? '<button type="button" class="link-btn" data-action="open-auth" data-mode="reset">Forgot password?</button>' : ''}
+      </p>
+    </form>`;
+}
+
+export function newPasswordForm() {
+  return `
+    <form data-form="new-password" class="sheet-form">
+      <header class="sheet-head"><h2>Choose a new password</h2></header>
+      <label>New password <input type="password" name="password" required minlength="8" autocomplete="new-password" /></label>
+      <p class="form-message" role="status" data-auth-message></p>
+      <button type="submit" class="btn">Save password</button>
+    </form>`;
+}
+
+export function signOutForm(email) {
+  return `
+    <div class="sheet-form">
+      <header class="sheet-head"><h2>Sign out</h2>
+        <button type="button" class="icon-btn" data-action="close-sheet" aria-label="Close">×</button></header>
+      <p>Your planner stays saved in your account (${esc(email)}).</p>
+      <button type="button" class="btn" data-action="sign-out" data-clear="1">Sign out and remove from this device</button>
+      <button type="button" class="btn secondary" data-action="sign-out" data-clear="">Sign out, keep a copy on this device</button>
+      <p class="muted small">Remove it if this is a shared or school computer.</p>
+    </div>`;
+}

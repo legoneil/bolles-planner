@@ -13,6 +13,7 @@ export function renderSettings(ctx) {
 
   return `
     <header class="view-head"><div class="day-title"><h1>Settings</h1></div></header>
+    ${accountCard(ctx.account)}
 
     <section class="card">
       <h2>Your school</h2>
@@ -113,7 +114,7 @@ export function renderSettings(ctx) {
 
     <section class="card">
       <h2>Backup</h2>
-      <p class="muted">Your planner is saved on this device. Download a backup to move it to another device.</p>
+      <p class="muted">${ctx.account?.status === 'signed-in' ? 'Your planner is saved to your account. You can also download a copy.' : 'Your planner is saved on this device. Download a backup to keep a copy or move it to another device.'}</p>
       <div class="btn-row">
         <button class="btn secondary" data-action="backup">Download backup</button>
         <label class="btn secondary file-btn">Restore backup<input type="file" accept="application/json,.json" data-action="restore" hidden /></label>
@@ -124,8 +125,39 @@ export function renderSettings(ctx) {
       <h2>About</h2>
       <p>A student-made planner for The Bolles School. It is <b>not</b> an official Bolles app and is not affiliated with or endorsed by the school.
         Schedules come from the 2026-27 student planners. Always check official school communications for changes.</p>
-      <button class="link-btn danger" data-action="reset">Erase all planner data</button>
+      <button class="link-btn danger" data-action="reset">${ctx.account?.status === 'signed-in' ? 'Erase all planner data (this device and your account)' : 'Erase all planner data'}</button>
     </section>`;
+}
+
+function accountCard(account) {
+  if (!account || account.status === 'disabled') return '';
+  if (account.status === 'loading') return '<section class="card"><h2>Account</h2><p class="muted">Checking your account…</p></section>';
+  if (account.status === 'signed-in') {
+    const when = account.syncing
+      ? 'Syncing…'
+      : account.lastSynced
+        ? `Synced ${new Date(account.lastSynced).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+        : 'Not synced yet';
+    return `<section class="card">
+      <h2>Account</h2>
+      <p>Signed in as <b>${esc(account.email)}</b></p>
+      <p class="muted small">${esc(when)}. Your planner syncs between your devices automatically.</p>
+      ${account.error ? `<p class="error small">${esc(account.error)}</p>` : ''}
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn secondary small" data-action="sync-now" ${account.syncing ? 'disabled' : ''}>Sync now</button>
+        <button class="btn secondary small" data-action="open-sign-out">Sign out</button>
+      </div>
+    </section>`;
+  }
+  return `<section class="card">
+    <h2>Account</h2>
+    <p class="muted">Sign in to save your planner online and use it on your phone and your laptop.</p>
+    ${account.error ? `<p class="error small">${esc(account.error)}</p>` : ''}
+    ${account.status === 'unavailable' ? '' : `<div class="btn-row" style="margin-top:10px">
+      <button class="btn small" data-action="open-auth" data-mode="signin">Sign in</button>
+      <button class="btn secondary small" data-action="open-auth" data-mode="signup">Create account</button>
+    </div>`}
+  </section>`;
 }
 
 const lunchText = (c) => (c.lunch === 'first' ? 'Lunch first in 3rd block' : c.lunch === 'second' ? 'Class first in 3rd block' : 'Lunch order not set');

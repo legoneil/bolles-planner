@@ -1,13 +1,28 @@
+import {
+  account,
+  accountsEnabled,
+  initAccount,
+  onAccountChange,
+  sendPasswordReset,
+  setNewPassword,
+  signIn,
+  signOut,
+  signUp,
+  sync,
+} from './account.js';
 import { CAMPUSES } from './data/bolles-2026-27.js';
 import { startOfMonth, todayISO } from './dates.js';
 import {
   activityForm,
   assignmentForm,
+  authForm,
   classForm,
+  newPasswordForm,
   quickDue,
   readActivity,
   readAssignment,
   readClass,
+  signOutForm,
   syncActivityForm,
   updateDueInfo,
   updateLunchHint,
@@ -19,6 +34,7 @@ import {
   allAssignments,
   defaultClasses,
   deleteAssignment,
+  freshState,
   getState,
   mergeSchoology,
   replaceState,
@@ -62,10 +78,10 @@ function render() {
   const onboarding = !state.profile;
   document.body.classList.toggle('onboarding', onboarding);
   if (onboarding) {
-    $view.innerHTML = renderOnboarding(ui.onboarding);
+    $view.innerHTML = renderOnboarding(ui.onboarding, { accounts: accountsEnabled && account.status !== 'signed-in' });
     return;
   }
-  const ctx = makeContext(state);
+  const ctx = { ...makeContext(state), account };
   const { name, arg } = route();
   const valid = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s ?? '');
   let html;
@@ -241,10 +257,29 @@ const actions = {
     }),
   backup: () => download(`bolles-planner-backup-${todayISO()}.json`, JSON.stringify(getState(), null, 2), 'application/json'),
   reset: () => {
-    if (confirm('Erase all classes, assignments and settings on this device? This cannot be undone.')) {
-      resetState();
-      ui.onboarding = { step: 1, campus: null, grade: null, classes: defaultClasses() };
-      location.hash = '#/today';
+    const signedIn = account.status === 'signed-in';
+    const msg = signedIn
+      ? 'Erase all classes, assignments and settings on this device AND in your account? This cannot be undone.'
+      : 'Erase all classes, assignments and settings on this device? This cannot be undone.';
+    if (!confirm(msg)) return;
+    // Signed in: erase as a normal edit so the deletion syncs to the account.
+    if (signedIn) update((s) => ({ ...freshState(), ownerId: s.ownerId }));
+    else resetState();
+    ui.onboarding = { step: 1, campus: null, grade: null, classes: defaultClasses() };
+    location.hash = '#/today';
+  },
+  'open-auth': (el) => openSheet(authForm(el.dataset.mode, { email: $sheet.querySelector('[name=email]')?.value ?? '' })),
+  'sync-now': () => sync(),
+  'open-sign-out': () => openSheet(signOutForm(account.email)),
+  'sign-out': async (el) => {
+    el.disabled = true;
+    try {
+      await signOut({ clearDevice: Boolean(el.dataset.clear) });
+      closeSheet();
+      toast('Signed out');
+    } catch (e) {
+      el.disabled = false;
+      toast(e.message);
     }
   },
   'onboard-back': () => {
@@ -254,6 +289,51 @@ const actions = {
 };
 
 const forms = {
+  auth: async (form) => {
+    const mode = form.dataset.mode;
+    const email = form.email.value.trim();
+    const password = form.password?.value ?? '';
+    const button = form.querySelector('[type=submit]');
+    const message = (text, isError = false) => {
+      const el = form.querySelector('[data-auth-message]');
+      el.textContent = text;
+      el.classList.toggle('is-error', isError);
+    };
+    button.disabled = true;
+    message('');
+    try {
+      if (mode === 'signin') {
+        await signIn(email, password);
+        closeSheet();
+        toast('Signed in. Syncing your planner…');
+      } else if (mode === 'signup') {
+        const { needsConfirmation } = await signUp(email, password);
+        if (needsConfirmation) openSheet(authForm('signin', { email, message: `Check ${email} for a confirmation link, then sign in here.` }));
+        else {
+          closeSheet();
+          toast('Account created. Your planner is saved online.');
+        }
+      } else {
+        await sendPasswordReset(email);
+        message('If that email has an account, a reset link is on its way.');
+      }
+    } catch (e) {
+      message(e.message, true);
+    } finally {
+      button.disabled = false;
+    }
+  },
+  'new-password': async (form) => {
+    const msg = form.querySelector('[data-auth-message]');
+    try {
+      await setNewPassword(form.password.value);
+      closeSheet();
+      toast('Password updated');
+    } catch (e) {
+      msg.textContent = e.message;
+      msg.classList.add('is-error');
+    }
+  },
   assignment: (form) => {
     const a = readAssignment(form, ui.sheetItem);
     if (!a.title || !a.dueDate) return;
@@ -422,6 +502,8 @@ $fab.addEventListener('click', () => {
 
 window.addEventListener('hashchange', render);
 subscribe(render);
+onAccountChange(render);
+initAccount({ onPasswordRecovery: () => openSheet(newPasswordForm()) });
 
 // Keep "now / next" fresh and roll over at midnight.
 setInterval(() => {

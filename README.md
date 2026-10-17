@@ -17,6 +17,7 @@ A student-made planner for The Bolles School. It knows every 2026-27 letter day,
 - **Sports and clubs:** recurring or one-time activities show up on the schedule.
 - **Unplanned closures:** mark a hurricane day and that day's letter is skipped, as the school does.
 - **Calendar export:** a `.ics` file for Google/Apple Calendar (assignments, letter days, events, and optionally every class meeting).
+- **Accounts (optional):** sign in with email and password to save the planner online and use it on a phone and a laptop. Edits on different devices merge item by item. See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
 - Dark mode, works offline, and can be added to an iPhone home screen.
 
 ## Running it
@@ -29,6 +30,10 @@ npm test         # unit tests (Node 20+)
 ```
 
 To publish it, turn on **GitHub Pages** for this repository (Settings → Pages → deploy from the `main` branch, root folder). Students open the link on their phone and tap **Share → Add to Home Screen**.
+
+## Accounts
+
+Accounts use [Supabase](https://supabase.com) (free plan). Follow [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md) to create the project, run `supabase/schema.sql`, and paste the project URL and anon key into `js/config.js`. With those left empty, the planner works on each device without accounts.
 
 ## Schoology sync
 
@@ -43,7 +48,11 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly, so the ap
 | `js/schedule.js` | Builds a day: letter, status and blocks with the student's classes |
 | `js/workload.js` | Heavy-day and 3-test alerts |
 | `js/ical.js` | Schoology/iCal import and `.ics` export |
-| `js/store.js` | Saved data (localStorage) |
+| `js/store.js` | Saved data (localStorage), with every change stamped for syncing |
+| `js/sync-merge.js` | Merges this device's planner with the account copy |
+| `js/account.js` | Sign-in and sync with Supabase |
+| `js/config.js` | Supabase project URL and anon key |
+| `supabase/schema.sql` | Database table and privacy rules |
 | `js/views/*` | Today/Day, Week, Month, To-Do, Settings, onboarding |
 
 ### Updating for a new school year
@@ -52,7 +61,6 @@ Add a new pair of data files for the year (letters, bell schedules, special days
 
 ## Not built yet
 
-- Accounts and sync between devices (data currently lives on each device; use *Backup* to move it).
 - Push notifications (export to your phone's calendar for reminders in the meantime).
 - Comparing schedules with friends and sharing assignments with classmates.
 - Grades from Schoology.

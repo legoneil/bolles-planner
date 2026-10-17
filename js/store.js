@@ -1,5 +1,7 @@
-// App state, persisted to localStorage. Everything a student enters lives
-// here so it can later be synced to an account without touching the views.
+// App state, persisted to localStorage. Every local change is stamped so it
+// can be merged with the copy saved to the student's account (see sync-merge.js).
+
+import { ensureSyncFields, stampChanges } from './sync-merge.js';
 
 const KEY = 'bolles-planner:v1';
 
@@ -42,16 +44,22 @@ const initialState = () => ({
   activities: [], // { id, title, days: [0-6], start, end, from, to, color, notes }
   schoology: { url: '', lastSync: null, lastError: null, overrides: {} },
   settings: { theme: 'auto', proxyUrl: '' },
+  ownerId: null, // account this device's data belongs to, if signed in
+  stamps: {},
+  tombstones: { assignments: {}, activities: {} },
 });
+
+export const freshState = initialState;
 
 let state = load();
 const listeners = new Set();
+const localListeners = new Set();
 
 function load() {
   try {
     const raw = globalThis.localStorage?.getItem(KEY);
     if (!raw) return initialState();
-    return { ...initialState(), ...JSON.parse(raw) };
+    return ensureSyncFields({ ...initialState(), ...JSON.parse(raw) });
   } catch {
     return initialState();
   }
@@ -67,11 +75,18 @@ function save() {
 
 export const getState = () => state;
 
-export function update(fn) {
-  const draft = structuredClone(state);
-  state = fn(draft) ?? draft;
+function commit(next, { local }) {
+  state = next;
   save();
   for (const l of listeners) l(state);
+  if (local) for (const l of localListeners) l(state);
+}
+
+// A change made on this device.
+export function update(fn) {
+  const draft = structuredClone(state);
+  const next = fn(draft) ?? draft;
+  commit(stampChanges(state, next), { local: true });
 }
 
 export function subscribe(fn) {
@@ -79,13 +94,24 @@ export function subscribe(fn) {
   return () => listeners.delete(fn);
 }
 
-export function replaceState(next) {
-  state = { ...initialState(), ...next };
-  save();
-  for (const l of listeners) l(state);
+// Called after local changes that should be saved to the account.
+export function onLocalChange(fn) {
+  localListeners.add(fn);
+  return () => localListeners.delete(fn);
 }
 
-export const resetState = () => replaceState(initialState());
+// Restoring a backup counts as a local change.
+export function replaceState(next) {
+  commit(stampChanges(state, ensureSyncFields({ ...initialState(), ...next, ownerId: state.ownerId })), { local: true });
+}
+
+// Data that came from the account: no new stamps, and no push back.
+export function applySynced(next) {
+  commit(ensureSyncFields({ ...initialState(), ...next }), { local: false });
+}
+
+// Wipe this device without touching the account (signing out, starting over).
+export const resetState = () => commit(initialState(), { local: false });
 
 // Assignments, with Schoology items merged with the student's local edits.
 export function allAssignments(s = state) {
