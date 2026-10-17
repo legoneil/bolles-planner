@@ -49,6 +49,25 @@ This creates a `planners` table with one private row per student. Row-level secu
 
 > **Never** put the secret key (`sb_secret_...`, or the legacy `service_role` key) in the app or send it to anyone. It bypasses all the privacy rules. The publishable key is the only one the app needs.
 
+## 5. Turn on Schoology sync
+
+Browsers aren't allowed to read Schoology calendar links directly, so the planner fetches them through a small Supabase Edge Function.
+
+1. In the Supabase dashboard, open **Edge Functions** and choose **Deploy a new function → Via Editor**.
+2. Name it exactly `schoology-ical`.
+3. Replace the sample code with everything in [`supabase/functions/schoology-ical/index.ts`](../supabase/functions/schoology-ical/index.ts) and click **Deploy**.
+4. Open the function's **Details** (or settings) and turn **off** "Verify JWT" / "Enforce JWT verification". The function checks the signed-in student itself, and the built-in check doesn't work with the new publishable keys.
+5. Test it: sign in to the planner, paste your Schoology calendar link under **Settings → Schoology** and click **Sync now**. Your assignments should appear in **To-Do**.
+
+What the function does:
+
+- It only answers signed-in planner users, so it isn't an open proxy.
+- It only fetches `https://*.schoology.com` links, including any redirects.
+- It stores nothing: the calendar goes straight back to the student's device.
+- It only allows the live site and `http://localhost:4173`. If the site's address changes, update `ALLOWED_ORIGINS` at the top of the file and deploy again.
+
+Grades aren't in Schoology's calendar feed. Grades would need Schoology's official API, which Bolles has turned off for students.
+
 ## Before lots of students sign up
 
 ### Email (needed before anyone outside the project can sign up)

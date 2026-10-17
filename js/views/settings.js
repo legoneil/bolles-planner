@@ -49,22 +49,23 @@ export function renderSettings(ctx) {
 
     <section class="card">
       <h2>Schoology</h2>
-      <p class="muted">Paste your Schoology calendar link to pull in assignments and tests automatically. In Schoology, open your <b>Calendar</b> and use its export (iCal) option to copy the link. It usually starts with <code>webcal://bolles.schoology.com</code>.</p>
+      <p class="muted">Paste your Schoology calendar link once and your assignments and tests stay up to date: they sync every time you open the planner. In Schoology, open your <b>Calendar</b> and use its export (iCal) option to copy the link. It usually starts with <code>webcal://bolles.schoology.com</code>.</p>
+      ${ctx.account?.status === 'signed-out' ? '<p class="muted small"><b>Sign in</b> (top of Settings) to sync automatically. Without an account, use the upload option below.</p>' : ''}
       <form class="inline-form" data-form="schoology">
         <input type="url" name="url" inputmode="url" placeholder="webcal://bolles.schoology.com/calendar/feed/ical/..." value="${esc(sgy.url)}" aria-label="Schoology calendar link" />
         <button class="btn" type="submit">${sgy.url ? 'Sync now' : 'Connect'}</button>
       </form>
       ${sgy.lastSync ? `<p class="muted small">Last synced ${esc(new Date(sgy.lastSync).toLocaleString())} · ${state.assignments.filter((a) => a.source === 'schoology').length} items</p>` : ''}
       ${sgy.lastError ? `<p class="error small">${esc(sgy.lastError)}</p>` : ''}
-      <p class="muted small">If syncing is blocked, open the link in your browser to download the <code>.ics</code> file, then
+      <p class="muted small">Or open the link in your browser to download the <code>.ics</code> file, then
         <label class="link-btn file-btn">upload it here<input type="file" accept=".ics,text/calendar" data-action="upload-ics" hidden /></label>.</p>
-      <details class="small"><summary>Advanced: sync server</summary>
+      ${ctx.account?.status && ctx.account.status !== 'disabled' ? '' : `<details class="small"><summary>Advanced: sync server</summary>
         <p class="muted">Browsers can't read Schoology links directly. A tiny sync server (see <code>workers/schoology-proxy.js</code>) fixes that.</p>
         <form class="inline-form" data-form="proxy">
           <input type="url" name="proxy" placeholder="https://your-proxy.workers.dev" value="${esc(state.settings.proxyUrl)}" aria-label="Sync server URL" />
           <button class="btn secondary" type="submit">Save</button>
         </form>
-      </details>
+      </details>`}
     </section>
 
     <section class="card">

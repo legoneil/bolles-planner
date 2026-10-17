@@ -146,6 +146,28 @@ export async function signUp(email, password) {
   return { needsConfirmation: !data.session };
 }
 
+// Fetch a Schoology calendar link through the schoology-ical Edge Function
+// (browsers can't read Schoology links directly).
+export async function fetchSchoologyCalendar(url) {
+  if (account.status !== 'signed-in') throw new Error('Sign in to sync Schoology automatically, or upload the .ics file below.');
+  const sb = await getClient();
+  const { data } = await sb.auth.getSession();
+  let res;
+  try {
+    res = await fetch(`${SUPABASE_URL}/functions/v1/schoology-ical`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${data.session?.access_token}` },
+      body: JSON.stringify({ url }),
+    });
+  } catch {
+    throw new Error('Couldn\u2019t connect. Check your internet and try again.');
+  }
+  if (res.ok) return res.text();
+  if (res.status === 404) throw new Error('Schoology sync isn\u2019t set up on the server yet. Upload the .ics file for now.');
+  const body = await res.json().catch(() => null);
+  throw new Error(body?.error ?? `Schoology sync failed (${res.status}).`);
+}
+
 export const signIn = (email, password) => call((auth) => auth.signInWithPassword({ email, password }));
 
 export const sendPasswordReset = (email) => call((auth) => auth.resetPasswordForEmail(email, { redirectTo: appUrl() }));

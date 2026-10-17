@@ -1,6 +1,7 @@
 import {
   account,
   accountsEnabled,
+  fetchSchoologyCalendar,
   initAccount,
   onAccountChange,
   sendPasswordReset,
@@ -171,33 +172,55 @@ function openAssignment(id, preset = {}) {
 // ---------------------------------------------------------------------------
 // Schoology
 
+let schoologyRunning = false;
+let schoologyAttempt = 0;
+
 async function syncSchoology(url = getState().schoology.url, { quiet = false } = {}) {
-  if (!url) return;
-  const httpsUrl = url.trim().replace(/^webcal:\/\//i, 'https://');
-  const proxy = getState().settings.proxyUrl;
-  let text = null;
+  if (!url || schoologyRunning) return;
+  schoologyRunning = true;
+  schoologyAttempt = Date.now();
   try {
-    text = await fetchText(httpsUrl);
-  } catch {
-    if (proxy) {
-      try {
-        text = await fetchText(`${proxy.replace(/\/$/, '')}/?url=${encodeURIComponent(httpsUrl)}`);
-      } catch {
-        // handled below
-      }
-    }
+    await runSchoologySync(url, quiet);
+  } finally {
+    schoologyRunning = false;
+  }
+}
+
+async function runSchoologySync(url, quiet) {
+  const httpsUrl = url.trim().replace(/^webcal:\/\//i, 'https://');
+  let text = null;
+  let error = null;
+  try {
+    text = await fetchSchoologyText(httpsUrl);
+  } catch (e) {
+    error = e.message;
   }
   if (!text?.includes('BEGIN:VCALENDAR')) {
     update((s) => {
-      s.schoology.lastError = proxy
-        ? 'Couldn’t reach Schoology through the sync server. Check the link, or upload the .ics file instead.'
-        : 'Your browser blocked reading Schoology directly. Upload the .ics file below, or set up a sync server.';
+      s.schoology.lastError = error ?? 'That link didn’t return a calendar. Check it, or upload the .ics file instead.';
     });
     if (!quiet) toast('Schoology sync didn’t work. See Settings.');
     return;
   }
-  importICS(text);
-  if (!quiet) toast('Schoology synced');
+  const n = importICS(text);
+  if (!quiet) toast(`Schoology synced · ${n} items`);
+}
+
+// Signed in: through our server. Accounts off: an optional self-hosted proxy.
+async function fetchSchoologyText(url) {
+  if (accountsEnabled) return fetchSchoologyCalendar(url);
+  const proxy = getState().settings.proxyUrl;
+  if (!proxy) throw new Error('Your browser can’t read Schoology links directly. Upload the .ics file below.');
+  return fetchText(`${proxy.replace(/\/$/, '')}/?url=${encodeURIComponent(url)}`);
+}
+
+// Sync on open (and when returning to the app) if the last sync is stale.
+function maybeSyncSchoology() {
+  const s = getState().schoology;
+  if (!s.url || Date.now() - (s.lastSync ?? 0) < 30 * 60 * 1000) return;
+  if (Date.now() - schoologyAttempt < 5 * 60 * 1000) return; // don't hammer after a failure
+  if (accountsEnabled && account.status !== 'signed-in') return;
+  syncSchoology(s.url, { quiet: true });
 }
 
 async function fetchText(url) {
@@ -601,6 +624,15 @@ $fab.addEventListener('click', () => {
 window.addEventListener('hashchange', render);
 subscribe(render);
 onAccountChange(render);
+// Once signed in (on load or after signing in), catch up on Schoology.
+let lastAccountUser = null;
+onAccountChange(() => {
+  if (account.userId === lastAccountUser) return;
+  lastAccountUser = account.userId;
+  if (account.status !== 'signed-in') return;
+  schoologyAttempt = 0; // attempts made while signed out don't count
+  maybeSyncSchoology();
+});
 onFriendsChange(() => {
   const { name } = route();
   if (name === 'friends' || name === 'friend') render();
@@ -615,9 +647,7 @@ setInterval(() => {
 }, 60_000);
 
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState !== 'visible') return;
-  const s = getState().schoology;
-  if (s.url && Date.now() - (s.lastSync ?? 0) > 60 * 60 * 1000) syncSchoology(s.url, { quiet: true });
+  if (document.visibilityState === 'visible') maybeSyncSchoology();
 });
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
@@ -625,5 +655,4 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 }
 
 render();
-const sgy = getState().schoology;
-if (sgy.url && Date.now() - (sgy.lastSync ?? 0) > 60 * 60 * 1000) syncSchoology(sgy.url, { quiet: true });
+maybeSyncSchoology();

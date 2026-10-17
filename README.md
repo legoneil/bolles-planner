@@ -13,7 +13,7 @@ A student-made planner for The Bolles School. It knows every 2026-27 letter day,
 - **Test load:** 2 tests on one day is marked a *heavy day*. 3 or more triggers an alert up to a week ahead so the student can ask a teacher to move one. It also warns when a test lands on a "no quizzes or tests" day.
 - **"Due next class":** picks the next date the class actually meets, skipping holidays and letter days without that period.
 - **Upper School lunch:** 3rd-block lunch order (lunch first or class first) is suggested from the planner's teacher list.
-- **Schoology:** import assignments from a Schoology calendar (iCal) link or `.ics` file. Tests and quizzes are recognised from their titles.
+- **Schoology:** paste your Schoology calendar (iCal) link once and assignments sync every time you open the planner (signed-in students), or upload the `.ics` file. Tests and quizzes are recognised from their titles and matched to your classes.
 - **Sports and clubs:** recurring or one-time activities show up on the schedule.
 - **Unplanned closures:** mark a hurricane day and that day's letter is skipped, as the school does.
 - **Calendar export:** a `.ics` file for Google/Apple Calendar (assignments, letter days, events, and optionally every class meeting).
@@ -39,7 +39,7 @@ Accounts use [Supabase](https://supabase.com) (free plan). Follow [docs/SUPABASE
 
 ## Schoology sync
 
-Browsers aren't allowed to read `bolles.schoology.com` links directly, so the app first tries the link and, if that's blocked, uses a small sync server. `workers/schoology-proxy.js` is a free Cloudflare Worker for this. Deploy it and paste its URL under *Settings → Schoology → Advanced*. Without it, students can still upload the downloaded `.ics` file.
+Browsers aren't allowed to read `bolles.schoology.com` links directly. For signed-in students the app fetches the calendar link through the `schoology-ical` Supabase Edge Function (`supabase/functions/schoology-ical/index.ts`; deploy steps in [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md)). Signed-out students can upload the downloaded `.ics` file. If accounts are turned off entirely, `workers/schoology-proxy.js` is an optional self-hosted Cloudflare Worker you can point the app at under *Settings → Schoology → Advanced*.
 
 ## Project layout
 
@@ -58,6 +58,7 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly, so the ap
 | `js/friends.js` | Friend codes, requests and sharing your schedule |
 | `supabase/schema.sql` | Planner table and privacy rules |
 | `supabase/friends.sql` | Friends tables, privacy rules and functions |
+| `supabase/functions/schoology-ical/` | Edge Function that fetches Schoology calendar links |
 | `tests/support/supabase-sim.js` | Local Postgres stand-in for Supabase used by the tests |
 | `js/views/*` | Today/Day, Week, Month, To-Do, Settings, onboarding |
 
