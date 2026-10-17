@@ -11,6 +11,17 @@ import {
   sync,
 } from './account.js';
 import { CAMPUSES } from './data/bolles-2026-27.js';
+import {
+  addFriend,
+  enableFriends,
+  friends,
+  initFriends,
+  leaveFriends,
+  loadFriends,
+  onFriendsChange,
+  removeFriend,
+  respond,
+} from './friends.js';
 import { startOfMonth, todayISO } from './dates.js';
 import {
   activityForm,
@@ -46,6 +57,7 @@ import {
   update,
 } from './store.js';
 import { renderDay } from './views/day.js';
+import { renderFriendCompare, renderFriends } from './views/friends.js';
 import { renderMonth } from './views/month.js';
 import { renderOnboarding } from './views/onboarding.js';
 import { renderSettings } from './views/settings.js';
@@ -101,10 +113,20 @@ function render() {
     case 'settings':
       html = renderSettings(ctx);
       break;
+    case 'friends':
+      html = renderFriends(ctx, friends, account);
+      loadFriends();
+      break;
+    case 'friend': {
+      const [, , id, date] = location.hash.split('/');
+      html = renderFriendCompare(ctx, friends, id, valid(date) ? date : ctx.today);
+      loadFriends();
+      break;
+    }
     default:
       html = renderDay(ctx, ctx.today);
   }
-  const tab = name === 'day' ? 'today' : name;
+  const tab = name === 'day' ? 'today' : name === 'friend' ? 'friends' : name;
   for (const a of $nav.querySelectorAll('a')) a.toggleAttribute('aria-current', a.dataset.tab === tab);
   const scroll = window.scrollY;
   $view.innerHTML = html;
@@ -268,6 +290,31 @@ const actions = {
     ui.onboarding = { step: 1, campus: null, grade: null, classes: defaultClasses() };
     location.hash = '#/today';
   },
+  'friends-refresh': () => loadFriends({ force: true }),
+  'friend-accept': (el) => friendAction(() => respond(el.dataset.id, true), 'Friend added'),
+  'friend-decline': (el) => friendAction(() => respond(el.dataset.id, false)),
+  'friend-cancel': (el) => friendAction(() => removeFriend(el.dataset.id), 'Request canceled'),
+  'friend-remove': (el) => {
+    if (!confirm(`Remove ${el.dataset.name} as a friend? You'll stop seeing each other's schedules.`)) return;
+    friendAction(() => removeFriend(el.dataset.id), 'Removed').then(() => (location.hash = '#/friends'));
+  },
+  'friends-leave': () => {
+    if (!confirm('Stop sharing your schedule and remove all your friends? You can turn friends on again later, but you will get a new code.')) return;
+    friendAction(leaveFriends, 'Friends turned off');
+  },
+  'share-code': async (el) => {
+    const code = el.dataset.code;
+    const text = `Add me on Bolles Planner! My friend code is ${code.slice(0, 4)}-${code.slice(4)}. ${location.origin}${location.pathname}#/friends`;
+    try {
+      if (navigator.share) await navigator.share({ text });
+      else {
+        await navigator.clipboard.writeText(text);
+        toast('Copied. Paste it to a friend.');
+      }
+    } catch {
+      // Share sheet dismissed.
+    }
+  },
   'open-auth': (el) => openSheet(authForm(el.dataset.mode, { email: $sheet.querySelector('[name=email]')?.value ?? '' })),
   'sync-now': () => sync(),
   'open-sign-out': () => openSheet(signOutForm(account.email)),
@@ -288,7 +335,42 @@ const actions = {
   },
 };
 
+async function friendAction(fn, done) {
+  try {
+    await fn();
+    if (done) toast(done);
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
 const forms = {
+  'friends-enable': async (form) => {
+    const button = form.querySelector('[type=submit]');
+    button.disabled = true;
+    await friendAction(() => enableFriends(form.name.value.trim()), 'Friends turned on');
+    button.disabled = false;
+  },
+  'friends-rename': (form) => friendAction(() => enableFriends(form.name.value.trim()), 'Name saved'),
+  'friend-add': async (form) => {
+    const msg = form.parentElement.querySelector('[data-friend-message]');
+    const button = form.querySelector('[type=submit]');
+    button.disabled = true;
+    try {
+      const res = await addFriend(form.code.value);
+      if (res.ok) form.reset();
+      // The view re-renders after loading, so report through a toast too.
+      toast(res.message);
+      if (msg?.isConnected) {
+        msg.textContent = res.message;
+        msg.classList.toggle('is-error', !res.ok);
+      }
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      button.disabled = false;
+    }
+  },
   auth: async (form) => {
     const mode = form.dataset.mode;
     const email = form.email.value.trim();
@@ -519,6 +601,11 @@ $fab.addEventListener('click', () => {
 window.addEventListener('hashchange', render);
 subscribe(render);
 onAccountChange(render);
+onFriendsChange(() => {
+  const { name } = route();
+  if (name === 'friends' || name === 'friend') render();
+});
+initFriends();
 initAccount({ onPasswordRecovery: () => openSheet(newPasswordForm()) });
 
 // Keep "now / next" fresh and roll over at midnight.

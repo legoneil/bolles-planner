@@ -1266,6 +1266,169 @@ details summary {
   cursor: default;
 }
 
+/* ---------- Friends ---------- */
+
+.bullets {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+}
+
+.friend-list,
+.request-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.friend-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 10px 0;
+  text-align: left;
+}
+
+.friend-list li:first-child .friend-row {
+  border-top: 0;
+}
+
+.avatar {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.friend-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.friend-main small {
+  color: var(--muted);
+}
+
+.friend-main .now-text {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.chev {
+  color: var(--muted);
+  font-size: 1.4rem;
+}
+
+.request-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.request-list li:first-child {
+  border-top: 0;
+}
+
+.request-list.pending {
+  margin-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.friend-code {
+  font: 800 1.8rem/1.2 ui-monospace, 'SF Mono', Menlo, monospace;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin: 4px 0 10px;
+  user-select: all;
+}
+
+.code-card .muted {
+  margin-top: 8px;
+}
+
+.cmp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.cmp-who {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+
+.cmp-blocks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.cmp-b {
+  border-left: 3px solid var(--c, var(--line));
+  padding: 4px 0 4px 8px;
+  border-radius: 2px;
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.cmp-b.free .cmp-name,
+.cmp-b.kind-activity .cmp-name,
+.cmp-b.kind-advisory .cmp-name {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.cmp-b.kind-lunch .cmp-name {
+  color: var(--ok);
+}
+
+.cmp-b.together,
+.cmp-b.lunch-together {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  border-left-color: var(--ok);
+  border-radius: 6px;
+}
+
+.cmp-time {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cmp-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cmp-room {
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
 /* ---------- Onboarding ---------- */
 
 .onboard {

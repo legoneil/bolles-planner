@@ -18,6 +18,8 @@ Until it's set up, the app still works but saves everything on each device only.
 1. In the left sidebar, open **SQL Editor** and click **New query**.
 2. Copy everything in [`supabase/schema.sql`](../supabase/schema.sql), paste it in, and click **Run**. It should say *Success. No rows returned*.
 
+3. Do the same with [`supabase/friends.sql`](../supabase/friends.sql). This turns on comparing schedules with friends.
+
 This creates a `planners` table with one private row per student. Row-level security means each student can only read and change their own planner, even though the app's key is public.
 
 ## 3. Set up sign-in
@@ -57,3 +59,11 @@ This creates a `planners` table with one private row per student. Row-level secu
 - The app merges this device's copy with the account copy item by item, so edits on the phone and the laptop don't overwrite each other. Deleted items are remembered, so they don't come back.
 - Sync runs a moment after each change, when the app is reopened, and when the device comes back online.
 - Signing out offers to remove the planner from that device (recommended on shared or school computers).
+
+## How friends work
+
+- `profiles` holds a student's display name, friend code and the schedule they share (campus, grade, and each class's period, name, teacher, room and lunch order). It never includes assignments.
+- `friendships` holds requests (`pending`) and friends (`accepted`).
+- A student can read a profile only if it's their own or an accepted friend's. Requests show names only. There is no way to search for students; you need their friend code.
+- Creating profiles, friend codes, requests and accepting all go through database functions, so nobody can make themselves someone's friend or pick a friend code.
+- `npm test` checks all of this against a real Postgres with these exact SQL files (`tests/friends-sql.test.js`).

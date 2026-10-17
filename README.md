@@ -18,6 +18,7 @@ A student-made planner for The Bolles School. It knows every 2026-27 letter day,
 - **Unplanned closures:** mark a hurricane day and that day's letter is skipped, as the school does.
 - **Calendar export:** a `.ics` file for Google/Apple Calendar (assignments, letter days, events, and optionally every class meeting).
 - **Accounts (optional):** sign in with email and password to save the planner online and use it on a phone and a laptop. Edits on different devices merge item by item. See [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md).
+- **Friends:** add friends by private friend code (requests must be accepted) and compare schedules: classes together, lunch together, free periods in common, and where each friend is right now. Friends see only your name and classes, never your homework.
 - Dark mode, works offline, and can be added to an iPhone home screen.
 
 ## Running it
@@ -26,6 +27,7 @@ It's a static site with no build step and no dependencies.
 
 ```sh
 npm start        # serves at http://localhost:4173
+npm install      # once: installs PGlite, used to test the database rules
 npm test         # unit tests (Node 20+)
 ```
 
@@ -52,7 +54,11 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly, so the ap
 | `js/sync-merge.js` | Merges this device's planner with the account copy |
 | `js/account.js` | Sign-in and sync with Supabase |
 | `js/config.js` | Supabase project URL and publishable key |
-| `supabase/schema.sql` | Database table and privacy rules |
+| `js/compare.js` | Classes, lunch and free time in common with a friend |
+| `js/friends.js` | Friend codes, requests and sharing your schedule |
+| `supabase/schema.sql` | Planner table and privacy rules |
+| `supabase/friends.sql` | Friends tables, privacy rules and functions |
+| `tests/support/supabase-sim.js` | Local Postgres stand-in for Supabase used by the tests |
 | `js/views/*` | Today/Day, Week, Month, To-Do, Settings, onboarding |
 
 ### Updating for a new school year
@@ -62,5 +68,5 @@ Add a new pair of data files for the year (letters, bell schedules, special days
 ## Not built yet
 
 - Push notifications (export to your phone's calendar for reminders in the meantime).
-- Comparing schedules with friends and sharing assignments with classmates.
+- Sharing assignments with classmates.
 - Grades from Schoology.

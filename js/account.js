@@ -27,7 +27,7 @@ export const onAccountChange = (fn) => listeners.add(fn);
 const emit = () => listeners.forEach((l) => l(account));
 
 let clientPromise = null;
-const getClient = () =>
+export const getClient = () =>
   (clientPromise ??= import(SUPABASE_JS_URL).then(({ createClient }) =>
     createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
