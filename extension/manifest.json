@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bolles Planner Grades",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Brings your Schoology grades into Bolles Planner. Student-made; not affiliated with Bolles or Schoology.",
   "permissions": ["storage"],
   "content_scripts": [

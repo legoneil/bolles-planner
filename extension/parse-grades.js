@@ -8,6 +8,15 @@
 (function (root) {
   const clean = (s) => (s ?? '').replace(/\s+/g, ' ').trim();
   const text = (el) => clean(el?.textContent);
+  // Text a sighted student sees: without screen-reader-only text, tooltips
+  // and the weight badge Schoology puts next to period/category names.
+  const HIDDEN_BITS = '.visually-hidden, .infotip-content, .percentage-contrib, .sr-only';
+  const visibleText = (el) => {
+    if (!el) return '';
+    const copy = el.cloneNode(true);
+    copy.querySelectorAll(HIDDEN_BITS).forEach((n) => n.remove());
+    return clean(copy.textContent);
+  };
   const first = (el, selectors) => {
     for (const s of selectors) {
       const found = el.querySelector(s);
@@ -29,7 +38,10 @@
   // "94.5%", "A-", "18 / 20", "Missing". Schoology often shows a letter and
   // keeps the percentage in a tooltip (title attribute) or hidden text.
   function readGrade(cell) {
-    if (!cell) return { display: null, score: null, max: null, percent: null, status: null };
+    const none = { display: null, score: null, max: null, percent: null, letter: null, status: null };
+    if (!cell) return none;
+    // Not graded yet: Schoology shows a dash in .no-grade.
+    if (cell.querySelector('.no-grade') && !cell.querySelector('.awarded-grade')) return none;
     const awarded = first(cell, ['.awarded-grade', '.rounded-grade', '.grade-value', '.numeric-grade', '.grade']);
     const exact = cell.querySelector('.rounded-grade[title]')?.getAttribute('title');
     const maxText = text(first(cell, ['.max-grade', '.grade-max', '.max-points']));
@@ -49,6 +61,7 @@
 
   function rowKind(tr) {
     const c = ` ${tr.className} `;
+    if (/\bcourse-row\b/.test(c)) return 'course';
     if (/\bperiod-row\b/.test(c)) return 'period';
     if (/\bcategory-row\b/.test(c)) return 'category';
     if (/\bitem-row\b/.test(c)) return 'item';
@@ -57,7 +70,7 @@
 
   function parseCourse(el) {
     const titleEl = first(el, ['.gradebook-course-title a', '.gradebook-course-title', '.course-title', 'h2', 'h3']);
-    const rawTitle = text(titleEl);
+    const rawTitle = visibleText(titleEl);
     const href = titleEl?.closest('a')?.getAttribute('href') ?? el.querySelector('a[href*="/course/"]')?.getAttribute('href') ?? '';
     const id = /\/course\/(\d+)/.exec(href)?.[1] ?? el.getAttribute('data-id') ?? el.id ?? rawTitle;
     // Schoology appends hidden text like "Course" right after the section name.
@@ -65,31 +78,45 @@
     const overall = readGrade(first(el, ['.gradebook-course-title .course-grade-value', '.course-grade-value', '.gradebook-course-title .grade', '.final-grade']));
 
     const periods = [];
+    const categories = [];
     const items = [];
     let category = null;
+    let period = null;
+    let courseRow = null;
     for (const tr of el.querySelectorAll('tr')) {
       const kind = rowKind(tr);
       if (!kind) continue;
       const th = tr.querySelector('th') ?? tr.cells?.[0];
-      const name = text(first(th ?? tr, ['.title', 'a', '.title-column'])) || text(th);
+      const titleEl = first(th ?? tr, ['.title', 'a', '.title-column']);
+      const due = visibleText(th?.querySelector('.due-date, .item-due-date'));
+      const name = clean((visibleText(titleEl) || visibleText(th)).replace(due, '')).replace(/\s*\(\d+(\.\d+)?%\)\s*$/, '');
+      // "(50%)" next to a period or category name is its weight, not a grade.
+      const weight = num(text(th?.querySelector('.percentage-contrib'))) ?? num(/\((\d+(?:\.\d+)?)%\)/.exec(text(titleEl))?.[1]);
       const g = readGrade(first(tr, ['.grade-column', 'td.grade', 'td:last-child']));
-      if (kind === 'period') periods.push({ title: name, ...g });
-      else if (kind === 'category') category = name.replace(/\s*\(\d+%\)\s*$/, '');
-      else if (kind === 'item' && items.length < 300) {
-        const due = text(th?.querySelector('.due-date, .item-due-date'));
+      if (kind === 'course') courseRow = g;
+      else if (kind === 'period') {
+        period = name;
+        category = null;
+        periods.push({ title: name, weight, ...g });
+      } else if (kind === 'category') {
+        category = name;
+        categories.push({ title: name, period, weight, ...g });
+      } else if (kind === 'item' && items.length < 300) {
         const link = th?.querySelector('a[href]')?.getAttribute('href') ?? '';
         items.push({
           id: tr.getAttribute('data-id') ?? /\/(assignment|discussion|assessment)\/(\d+)/.exec(link)?.[2] ?? `${name}|${due}`,
-          title: clean(name.replace(due, '')),
+          title: name,
           category,
+          period,
           due: due.replace(/^Due\s*/i, '') || null,
           ...g,
         });
       }
     }
     // Course grade fallback: the latest period with a grade.
-    const course = overall.display || overall.percent !== null ? overall : ([...periods].reverse().find((p) => p.display || p.percent !== null) ?? overall);
-    return { id: String(id), title: clean(title), section: clean(section) || null, grade: course.display, percent: course.percent, letter: course.letter ?? null, periods, items };
+    const has = (g) => g && (g.display || g.percent !== null);
+    const course = has(overall) ? overall : has(courseRow) ? courseRow : ([...periods].reverse().find((p) => p.display || p.percent !== null) ?? overall);
+    return { id: String(id), title: clean(title), section: clean(section) || null, grade: course.display, percent: course.percent, letter: course.letter ?? null, periods, categories, items };
   }
 
   function parseGrades(doc) {

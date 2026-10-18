@@ -53,6 +53,23 @@ test('sanitize keeps only expected fields and limits sizes', () => {
   assert.equal(out.courses[0].items[0].max, 20);
 });
 
+test('sanitize keeps period and category weights, and drops bad ones', () => {
+  const out = sanitize({
+    courses: [{
+      title: 'Algebra II',
+      periods: [{ title: 'Semester 1', weight: 50, letter: 'B+' }],
+      categories: [{ title: 'Tests', period: 'Semester 1', weight: '60', letter: 'B', html: '<b>' }],
+      items: [{ title: 'Unit 2 Test', category: 'Tests', period: 'Semester 1', letter: 'B-' }],
+    }],
+  });
+  const [c] = out.courses;
+  assert.equal(c.periods[0].weight, 50);
+  assert.deepEqual([c.categories[0].title, c.categories[0].period, c.categories[0].weight, c.categories[0].letter], ['Tests', 'Semester 1', null, 'B']);
+  assert.equal(c.categories[0].html, undefined);
+  assert.equal(c.items[0].period, 'Semester 1');
+  assert.deepEqual(sanitize({ courses: [{ title: 'Old' }] }).courses[0].categories, []);
+});
+
 test('grades are never part of what friends see', () => {
   const s = sharedSchedule({ campus: 'us', grade: 10, classes, grades: { secret: 1 } });
   assert.equal(JSON.stringify(s).includes('secret'), false);

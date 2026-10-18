@@ -24,6 +24,8 @@ School-managed laptops sometimes block step 3. If the Developer mode switch is g
 
 The extension's toolbar button shows when it last read your grades.
 
+**Letters, not percentages.** The extension shows exactly what your Schoology grades page shows. At Bolles that's letter grades only (course, semester, category and assignment), so the planner shows letters too. The "(50%)" next to a semester or category is how much it counts toward the grade, not a score. Exact percentages are only available through Schoology's official API, which needs an API key from a teacher or administrator.
+
 ## If it says it couldn't read your grades
 
 Schoology's page layout isn't documented and can change. If the extension can't find your courses:

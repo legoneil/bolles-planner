@@ -40,6 +40,9 @@ export function renderGrades(ctx, extension) {
   }
   const now = ctx.now.getTime();
   const stale = now - g.readAt > 3 * 24 * 3600 * 1000;
+  // "Tests (60%): B": the weight is how much it counts, not a score.
+  const chip = (p) =>
+    `<span class="chip-static">${esc(p.title)}${p.weight !== null && p.weight !== undefined ? ` (${esc(p.weight)}%)` : ''}: <b>${esc(gradeText(p))}</b></span>`;
   const courses = g.courses
     .map((c) => {
       const cls = matchClass(c, ctx.profile.classes);
@@ -51,7 +54,8 @@ export function renderGrades(ctx, extension) {
               <small>${esc(cls ? `${cleanCourseText(c.title)}${c.section ? ` · ${cleanCourseText(c.section)}` : ''}` : cleanCourseText(c.section))}</small></span>
             <span class="course-grade ${tone(c)}">${esc(gradeText(c))}</span>
           </summary>
-          ${c.periods.length ? `<p class="periods">${c.periods.map((p) => `<span class="chip-static">${esc(p.title)}: <b>${esc(gradeText(p))}</b></span>`).join('')}</p>` : ''}
+          ${c.periods.length ? `<p class="periods">${c.periods.map(chip).join('')}</p>` : ''}
+          ${c.categories?.length ? `<p class="periods">${c.categories.map(chip).join('')}</p>` : ''}
           ${items.length
             ? `<ul class="grade-items">${items
                 .map(
