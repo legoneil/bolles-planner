@@ -4,6 +4,7 @@ import { CAMPUSES } from './data/bolles-2026-27.js';
 import { addDays, formatLongDate, formatRange } from './dates.js';
 import { meetingsOn, nextMeeting, PERIODS, suggestLunch } from './schedule.js';
 import { ASSIGNMENT_TYPES, CLASS_COLORS, CLASS_TYPES, uid } from './store.js';
+import { formatMinutes, isBigWork, TIME_CHOICES, workKind } from './study.js';
 import { className, esc } from './ui.js';
 import { testWarnings } from './workload.js';
 
@@ -45,6 +46,13 @@ export function assignmentForm(a, ctx) {
       </div>`}
       <p class="due-info" data-due-info></p>
       <div class="warnings" data-due-warn></div>
+      <label>How long will it take?
+        <select name="minutes">
+          <option value="">Usual for this type</option>
+          ${TIME_CHOICES.map((m) => `<option value="${m}" ${Number(a.minutes) === m ? 'selected' : ''}>${formatMinutes(m)}</option>`).join('')}
+        </select>
+      </label>
+      <p class="muted small" data-time-hint></p>
       <label>Notes
         <textarea name="notes" rows="3" placeholder="Pages, rubric, what to study…">${esc(a.notes ?? '')}</textarea>
       </label>
@@ -78,6 +86,19 @@ export function updateDueInfo(form, ctx) {
     const msgs = testWarnings(ctx.assignments, date, ctx.profile, form.id.value || null);
     warn.innerHTML = msgs.map((m) => `<p class="warning">${esc(m)}</p>`).join('');
   }
+  updateTimeHint(form);
+}
+
+// Under the time estimate: what the plan will do with it.
+export function updateTimeHint(form) {
+  const hint = form.querySelector('[data-time-hint]');
+  if (!hint) return;
+  const fake = { type: form.type.value };
+  const kind = workKind(fake);
+  const total = Number(form.minutes.value) || kind.minutes;
+  hint.textContent = isBigWork(fake)
+    ? `About ${formatMinutes(total)} of studying, spread over the ${kind.days} days before, in sessions of about ${kind.session} min.`
+    : `About ${formatMinutes(total)}, planned for a free period or the evening before it's due.`;
 }
 
 export function quickDue(form, when, ctx) {
@@ -104,6 +125,7 @@ export function readAssignment(form, existing) {
     classId: f.get('classId') || null,
     dueDate: f.get('dueDate'),
     notes: String(f.get('notes') ?? '').trim(),
+    minutes: Number(f.get('minutes')) || null,
     done: existing?.done ?? false,
   };
 }

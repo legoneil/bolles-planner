@@ -63,6 +63,7 @@ import { renderGrades } from './views/grades.js';
 import { renderFriendCompare, renderFriends } from './views/friends.js';
 import { renderMonth } from './views/month.js';
 import { renderOnboarding } from './views/onboarding.js';
+import { renderPlan } from './views/plan.js';
 import { renderSettings } from './views/settings.js';
 import { renderTodo } from './views/todo.js';
 import { renderWeek } from './views/week.js';
@@ -119,6 +120,9 @@ function render() {
     case 'grades':
       html = renderGrades(ctx, extension);
       break;
+    case 'plan':
+      html = renderPlan(ctx);
+      break;
     case 'friends':
       html = renderFriends(ctx, friends, account);
       loadFriends();
@@ -132,7 +136,7 @@ function render() {
     default:
       html = renderDay(ctx, ctx.today);
   }
-  const tab = name === 'day' || name === 'grades' ? 'today' : name === 'friend' ? 'friends' : name;
+  const tab = name === 'day' || name === 'grades' || name === 'plan' ? 'today' : name === 'friend' ? 'friends' : name;
   for (const a of $nav.querySelectorAll('a')) a.toggleAttribute('aria-current', a.dataset.tab === tab);
   const scroll = window.scrollY;
   $view.innerHTML = html;
@@ -305,6 +309,19 @@ const actions = {
     update((s) => {
       s.settings.theme = el.dataset.theme;
     }),
+  'set-budget': (el) =>
+    update((s) => {
+      s.settings.studyBudget = Number(el.dataset.minutes) || null;
+    }),
+  // Check off a study session: the minutes count toward that assignment.
+  'log-session': (el) => {
+    const a = allAssignments().find((x) => x.id === el.dataset.id);
+    if (!a) return;
+    const sessions = { ...(a.sessions ?? {}) };
+    if (sessions[el.dataset.date]) delete sessions[el.dataset.date];
+    else sessions[el.dataset.date] = Number(el.dataset.minutes);
+    saveAssignment({ ...a, sessions });
+  },
   backup: () => download(`bolles-planner-backup-${todayISO()}.json`, JSON.stringify(getState(), null, 2), 'application/json'),
   reset: () => {
     const signedIn = account.status === 'signed-in';

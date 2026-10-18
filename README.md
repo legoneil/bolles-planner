@@ -10,6 +10,7 @@ A student-made planner for The Bolles School. It knows every 2026-27 letter day,
 - **Week:** Monday through Friday, with each class in the order it meets that day and assignments attached to the class period they're due in.
 - **Month:** letter days, holidays, exams and test load at a glance.
 - **To-Do:** everything due, grouped by when, filterable by class or "tests & quizzes".
+- **Plan:** every assignment gets a time estimate (a sensible default by type, or your own). Homework is planned for a free period or the evening before it's due; tests, quizzes, essays and projects are spread over the days before, around practices and activities. Today shows tonight's plan and the total time, the Plan page shows the week, and a night that doesn't fit your usual study time is flagged. Check off study sessions as you go.
 - **Test load:** 2 tests on one day is marked a *heavy day*. 3 or more triggers an alert up to a week ahead so the student can ask a teacher to move one. It also warns when a test lands on a "no quizzes or tests" day.
 - **"Due next class":** picks the next date the class actually meets, skipping holidays and letter days without that period.
 - **Upper School lunch:** 3rd-block lunch order (lunch first or class first) is suggested from the planner's teacher list.
@@ -50,6 +51,7 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly. For signe
 | `js/data/letters-2026-27.js` | The official letter for every class day, per campus |
 | `js/schedule.js` | Builds a day: letter, status and blocks with the student's classes |
 | `js/workload.js` | Heavy-day and 3-test alerts |
+| `js/study.js` | Time estimates, free-period detection and the work plan |
 | `js/ical.js` | Schoology/iCal import and `.ics` export |
 | `js/store.js` | Saved data (localStorage), with every change stamped for syncing |
 | `js/sync-merge.js` | Merges this device's planner with the account copy |

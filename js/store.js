@@ -43,7 +43,7 @@ const initialState = () => ({
   assignments: [],
   activities: [], // { id, title, days: [0-6], start, end, from, to, color, notes }
   schoology: { url: '', lastSync: null, lastError: null, overrides: {} },
-  settings: { theme: 'auto', proxyUrl: '' },
+  settings: { theme: 'auto', proxyUrl: '', studyBudget: null }, // studyBudget: minutes per school night
   grades: null, // from the browser extension; private, never shared with friends
   ownerId: null, // account this device's data belongs to, if signed in
   stamps: {},
@@ -122,8 +122,8 @@ export function allAssignments(s = state) {
 export function saveAssignment(a) {
   update((s) => {
     if (a.source === 'schoology') {
-      const { classId, type, done, hidden, notes } = a;
-      s.schoology.overrides[a.id] = { classId, type, done, hidden, notes };
+      const { classId, type, done, hidden, notes, minutes, sessions } = a;
+      s.schoology.overrides[a.id] = { classId, type, done, hidden, notes, minutes, sessions };
       return;
     }
     const i = s.assignments.findIndex((x) => x.id === a.id);

@@ -1,6 +1,7 @@
 import { addDays, diffDays, formatLongDate, formatRange, formatTime, minutes, nowMinutes, relativeDay } from '../dates.js';
 import { plannerDay } from '../planner.js';
 import { gradesCard } from './grades.js';
+import { tonightCard } from './plan.js';
 import { nowAndNext } from '../schedule.js';
 import { assignmentItem, blockRow, className, emptyState, esc, eventChips, letterBadge, statusLabel } from '../ui.js';
 import { loadLevel, overloadAlerts, testsByDate } from '../workload.js';
@@ -29,6 +30,7 @@ export function renderDay(ctx, date) {
 
   const alerts = isToday ? renderAlerts(ctx) : '';
   const nowCard = isToday && day.blocks.some((b) => b.isClass) ? renderNowCard(current, next, nowMin) : '';
+  const tonight = isToday ? tonightCard(ctx) : '';
 
   const name = day.name && day.name !== statusLabel(day) ? `<p class="day-name">${esc(day.name)}</p>` : '';
   const note = day.note ? `<p class="day-note">${esc(day.note)}</p>` : '';
@@ -61,7 +63,7 @@ export function renderDay(ctx, date) {
 
   const upcoming = isToday ? renderUpcoming(ctx) : '';
 
-  return `${head}${alerts}${nowCard}
+  return `${head}${alerts}${nowCard}${tonight}
     <section class="card">
       ${name}${note}${eventChips(day.events.filter((e) => e.title !== day.name))}
       <h2 class="sr-only">Schedule</h2>

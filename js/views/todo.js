@@ -47,7 +47,7 @@ export function renderTodo(ctx, filter = { classId: 'all', show: 'open' }) {
         : emptyState('All caught up', 'Tap <b>+</b> to add homework, a test or a project, or connect Schoology in Settings.');
 
   return `
-    <header class="view-head"><div class="day-title"><h1>To-Do</h1></div>
+    <header class="view-head"><div class="day-title"><h1>To-Do</h1><p class="eyebrow"><button class="link-btn" data-nav="#/plan">When should I do all this? →</button></p></div>
       <div class="seg">
         <button class="${filter.show !== 'done' ? 'on' : ''}" data-action="todo-show" data-show="open">To do</button>
         <button class="${filter.show === 'done' ? 'on' : ''}" data-action="todo-show" data-show="done">Done</button>

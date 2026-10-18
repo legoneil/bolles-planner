@@ -1,3 +1,4 @@
+import { budgetPicker } from './plan.js';
 import { CAMPUSES } from '../data/bolles-2026-27.js';
 import { formatDate, formatRange } from '../dates.js';
 import { className, esc, ordinal } from '../ui.js';
@@ -115,6 +116,12 @@ export function renderSettings(ctx) {
         <label class="check-row"><input type="checkbox" name="schedule" /> My class schedule (every class meeting)</label>
         <button class="btn secondary" type="submit">Download .ics</button>
       </form>
+    </section>
+
+    <section class="card">
+      <h2>Study time</h2>
+      <p class="muted">How long you can usually work on a school night. The plan spreads tests and projects over your free periods and evenings, and warns you when a night won't fit.</p>
+      ${budgetPicker(ctx)}
     </section>
 
     <section class="card">
