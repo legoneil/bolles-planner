@@ -42,9 +42,9 @@ export function renderMonth(ctx, anchor) {
 
   return `
     <header class="view-head">
-      <button class="icon-btn" data-nav="#/month/${addMonths(first, -1).slice(0, 7)}" aria-label="Previous month">‹</button>
+      <button class="icon-btn" data-nav="#/month/${addMonths(first, -1).slice(0, 7)}" aria-label="Previous month"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5" /></svg></button>
       <div class="day-title"><h1>${esc(formatMonth(first))}</h1></div>
-      <button class="icon-btn" data-nav="#/month/${addMonths(first, 1).slice(0, 7)}" aria-label="Next month">›</button>
+      <button class="icon-btn" data-nav="#/month/${addMonths(first, 1).slice(0, 7)}" aria-label="Next month"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5" /></svg></button>
     </header>
     ${ctx.today.startsWith(month) ? '' : '<button class="link-btn back-today" data-nav="#/month">This month</button>'}
     <div class="month-grid" role="grid">

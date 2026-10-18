@@ -12,12 +12,12 @@ export function renderWeek(ctx, anchor) {
 
   const head = `
     <header class="view-head">
-      <button class="icon-btn" data-nav="#/week/${addDays(monday, -7)}" aria-label="Previous week">‹</button>
+      <button class="icon-btn" data-nav="#/week/${addDays(monday, -7)}" aria-label="Previous week"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5" /></svg></button>
       <div class="day-title">
         <p class="eyebrow">Week of</p>
         <h1>${esc(formatDate(monday))} – ${esc(formatDate(addDays(monday, 4)))}</h1>
       </div>
-      <button class="icon-btn" data-nav="#/week/${addDays(monday, 7)}" aria-label="Next week">›</button>
+      <button class="icon-btn" data-nav="#/week/${addDays(monday, 7)}" aria-label="Next week"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5" /></svg></button>
     </header>
     ${days.includes(ctx.today) ? '' : '<button class="link-btn back-today" data-nav="#/week">This week</button>'}`;
 

@@ -17,14 +17,14 @@ export function renderDay(ctx, date) {
 
   const head = `
     <header class="view-head day-head">
-      <button class="icon-btn" data-nav="#/day/${addDays(date, -1)}" aria-label="Previous day">‹</button>
+      <button class="icon-btn" data-nav="#/day/${addDays(date, -1)}" aria-label="Previous day"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5" /></svg></button>
       <div class="day-title">
         <p class="eyebrow">${esc(relativeDay(date, ctx.today))}</p>
         <h1>${esc(formatLongDate(date))}</h1>
         <p class="day-status">${letterBadge(day.letter, 'lg')}<span>${esc(statusLabel(day))}</span>
           ${level ? `<span class="load load-${level}">${level === 'heavy' ? 'Heavy day' : `${tests.length} tests`}</span>` : ''}</p>
       </div>
-      <button class="icon-btn" data-nav="#/day/${addDays(date, 1)}" aria-label="Next day">›</button>
+      <button class="icon-btn" data-nav="#/day/${addDays(date, 1)}" aria-label="Next day"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5" /></svg></button>
     </header>
     ${isToday ? '' : `<button class="link-btn back-today" data-nav="#/today">Back to today</button>`}`;
 
@@ -63,22 +63,30 @@ export function renderDay(ctx, date) {
 
   const upcoming = isToday ? renderUpcoming(ctx) : '';
 
-  return `${head}${alerts}${nowCard}${tonight}
-    <section class="card">
+  const scheduleCard = `<section class="card">
       ${name}${note}${eventChips(day.events.filter((e) => e.title !== day.name))}
       <h2 class="sr-only">Schedule</h2>
       ${schedule}
-    </section>
-    ${unplaced}${upcoming}${isToday ? gradesCard(ctx) : ''}`;
+    </section>`;
+  if (!isToday) return `${head}${scheduleCard}${unplaced}`;
+  // Today: on laptops the schedule sits beside the plan.
+  return `${head}${alerts}${nowCard}
+    <div class="today-grid">
+      <div>${scheduleCard}${unplaced}</div>
+      <div class="today-side">${tonight}${upcoming}${gradesCard(ctx)}</div>
+    </div>`;
 }
 
 function renderNowCard(current, next, nowMin) {
   const parts = [];
   if (current) {
     const left = minutes(current.end) - nowMin;
+    const length = minutes(current.end) - minutes(current.start);
+    const pct = Math.round(((length - left) / Math.max(length, 1)) * 100);
     const title = current.isClass ? `P${current.period} · ${className(current.cls)}` : current.label;
     parts.push(`<div><p class="eyebrow">Now</p><p class="now-title">${esc(title)}</p>
-      <p class="muted">${left} min left · ends ${esc(formatTime(current.end))}</p></div>`);
+      <p class="muted">${left} min left · ends ${esc(formatTime(current.end))}</p>
+      <div class="now-progress" role="progressbar" aria-label="Time through this block" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><span style="--pct:${pct}%"></span></div></div>`);
   }
   if (next) {
     const until = minutes(next.start) - nowMin;

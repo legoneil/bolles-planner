@@ -150,12 +150,12 @@ export function renderFriendCompare(ctx, friends, id, date) {
 
   return `
     <header class="view-head">
-      <button class="icon-btn" data-nav="#/friend/${esc(id)}/${addDays(date, -1)}" aria-label="Previous day">‹</button>
+      <button class="icon-btn" data-nav="#/friend/${esc(id)}/${addDays(date, -1)}" aria-label="Previous day"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5L7 10l5.5 5.5" /></svg></button>
       <div class="day-title">
         <p class="eyebrow">You & ${esc(f.display_name)} · ${esc(relativeDay(date, ctx.today))}</p>
         <h1>${esc(formatLongDate(date))}</h1>
       </div>
-      <button class="icon-btn" data-nav="#/friend/${esc(id)}/${addDays(date, 1)}" aria-label="Next day">›</button>
+      <button class="icon-btn" data-nav="#/friend/${esc(id)}/${addDays(date, 1)}" aria-label="Next day"><svg class="chev-ico" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5L13 10l-5.5 5.5" /></svg></button>
     </header>
     <button class="link-btn back-today" data-nav="${isToday ? '#/friends' : `#/friend/${esc(id)}`}">${isToday ? 'All friends' : 'Back to today'}</button>
     ${now ? `<section class="card now-card"><div><p class="eyebrow">${esc(f.display_name)} right now</p><p class="now-title">${esc(now.text)}</p></div></section>` : ''}

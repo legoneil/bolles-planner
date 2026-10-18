@@ -47,6 +47,8 @@ Browsers aren't allowed to read `bolles.schoology.com` links directly. For signe
 
 | Path | What's in it |
 | --- | --- |
+| `css/app.css` | All styling. Colors are tokens at the top; dark mode swaps them |
+| `fonts/` | Inter, self-hosted so it works offline (SIL Open Font License) |
 | `js/data/bolles-2026-27.js` | Bell schedules, alt-schedule days, events, lunch teacher lists, rotation |
 | `js/data/letters-2026-27.js` | The official letter for every class day, per campus |
 | `js/schedule.js` | Builds a day: letter, status and blocks with the student's classes |

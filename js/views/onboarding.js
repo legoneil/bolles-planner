@@ -7,6 +7,7 @@ export function renderOnboarding(draft, { accounts = false } = {}) {
   if (draft.step === 1) {
     return `
       <section class="onboard">
+        <img class="onboard-mark" src="icons/icon.svg" alt="" />
         <p class="eyebrow">Welcome</p>
         <h1>Bolles Planner</h1>
         <p class="lead">Your letter days, classes, homework and tests in one place. Set it up in about a minute.</p>
