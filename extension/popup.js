@@ -7,6 +7,8 @@ const ago = (t) => {
   return m < 1 ? 'just now' : m < 60 ? `${m} min ago` : `${Math.round(m / 60)} h ago`;
 };
 
+$('version').textContent = `v${chrome.runtime.getManifest().version}`;
+
 chrome.storage.local.get(['grades', 'status', 'layout']).then(({ grades, status, layout }) => {
   const el = $('status');
   if (status) {

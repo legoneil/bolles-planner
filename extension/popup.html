@@ -11,12 +11,13 @@
       .muted { color: #6b7280; font-size: 12px; }
       .ok { color: #16803c; font-weight: 600; }
       .bad { color: #c0392b; font-weight: 600; }
+      [hidden] { display: none !important; }
       button { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; background: transparent; font: inherit; cursor: pointer; }
       button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
     </style>
   </head>
   <body>
-    <h1>Bolles Planner Grades</h1>
+    <h1>Bolles Planner Grades <span id="version" class="muted"></span></h1>
     <p id="status" class="muted">Open your Schoology grades once to get started.</p>
     <button class="primary" id="open-grades">Open my Schoology grades</button>
     <button id="open-planner">Open Bolles Planner</button>
