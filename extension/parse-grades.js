@@ -53,7 +53,8 @@
     const rawTitle = text(titleEl);
     const href = titleEl?.closest('a')?.getAttribute('href') ?? el.querySelector('a[href*="/course/"]')?.getAttribute('href') ?? '';
     const id = /\/course\/(\d+)/.exec(href)?.[1] ?? el.getAttribute('data-id') ?? el.id ?? rawTitle;
-    const [title, section] = rawTitle.split(/\s*:\s*/, 2);
+    // Schoology appends hidden text like "Course" right after the section name.
+    const [title, section] = rawTitle.replace(/(?<=\S)Course$/, '').split(/\s*:\s*/, 2);
     const overall = readGrade(first(el, ['.gradebook-course-title .course-grade-value', '.course-grade-value', '.gradebook-course-title .grade', '.final-grade']));
 
     const periods = [];

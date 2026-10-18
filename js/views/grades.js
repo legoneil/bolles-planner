@@ -1,4 +1,4 @@
-import { matchClass } from '../grades.js';
+import { cleanCourseText, matchClass } from '../grades.js';
 import { className, esc } from '../ui.js';
 
 const ago = (t, now) => {
@@ -10,7 +10,12 @@ const ago = (t, now) => {
 };
 
 const gradeText = (g) => g.display ?? (g.percent !== null ? `${g.percent}%` : g.letter ?? '—');
-const tone = (g) => (g.percent === null ? '' : g.percent >= 90 ? 'g-high' : g.percent >= 80 ? 'g-mid' : g.percent >= 70 ? 'g-low' : 'g-alert');
+const LETTER_TONE = { A: 'g-high', B: 'g-mid', C: 'g-low', D: 'g-alert', F: 'g-alert' };
+const tone = (g) => {
+  if (g.percent !== null) return g.percent >= 90 ? 'g-high' : g.percent >= 80 ? 'g-mid' : g.percent >= 70 ? 'g-low' : 'g-alert';
+  const letter = g.letter ?? /^([A-F])[+-]?$/.exec(g.display ?? '')?.[1];
+  return LETTER_TONE[letter?.[0]] ?? '';
+};
 
 const INSTALL = `
   <ol class="steps">
@@ -37,8 +42,8 @@ export function renderGrades(ctx, extension) {
       return `<li class="course" style="--c:${esc(cls?.color ?? 'var(--line)')}">
         <details>
           <summary>
-            <span class="course-main"><b>${esc(cls ? className(cls) : c.title)}</b>
-              <small>${esc(cls ? `${c.title}${c.section ? ` · ${c.section}` : ''}` : c.section ?? '')}</small></span>
+            <span class="course-main"><b>${esc(cls ? className(cls) : cleanCourseText(c.title))}</b>
+              <small>${esc(cls ? `${cleanCourseText(c.title)}${c.section ? ` · ${cleanCourseText(c.section)}` : ''}` : cleanCourseText(c.section))}</small></span>
             <span class="course-grade ${tone(c)}">${esc(gradeText(c))}</span>
           </summary>
           ${c.periods.length ? `<p class="periods">${c.periods.map((p) => `<span class="chip-static">${esc(p.title)}: <b>${esc(gradeText(p))}</b></span>`).join('')}</p>` : ''}
@@ -68,7 +73,7 @@ export function gradesCard(ctx) {
     .slice(0, 8)
     .map((c) => {
       const cls = matchClass(c, ctx.profile.classes);
-      return `<span class="grade-chip" style="--c:${esc(cls?.color ?? 'var(--line)')}">${esc(cls ? className(cls) : c.title)} <b class="${tone(c)}">${esc(gradeText(c))}</b></span>`;
+      return `<span class="grade-chip" style="--c:${esc(cls?.color ?? 'var(--line)')}">${esc(cls ? className(cls) : cleanCourseText(c.title))} <b class="${tone(c)}">${esc(gradeText(c))}</b></span>`;
     })
     .join('');
   return `<section class="card"><div class="card-head"><h2>Grades</h2><button class="link-btn small" data-nav="#/grades">Details</button></div>

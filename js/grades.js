@@ -46,8 +46,8 @@ export function sanitize(data) {
     domain: str(data.domain, 100),
     courses: (data.courses ?? []).slice(0, 20).map((c) => ({
       id: str(String(c.id ?? ''), 60),
-      title: str(c.title, 120) ?? 'Course',
-      section: str(c.section, 120),
+      title: str(cleanCourseText(c.title), 120) || 'Course',
+      section: str(cleanCourseText(c.section), 120) || null,
       ...grade({ display: c.grade, percent: c.percent, letter: c.letter }),
       periods: (c.periods ?? []).slice(0, 8).map((p) => ({ title: str(p.title, 60), ...grade(p) })),
       items: (c.items ?? []).slice(0, 300).map((i) => ({
@@ -64,8 +64,17 @@ export function sanitize(data) {
 const norm = (s) => (s ?? '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
 const words = (s) => new Set(norm(s).split(' ').filter((w) => w.length > 1 && !['and', 'the', 'of', 'section', 'sec'].includes(w)));
 
-// Best-matching planner class for a Schoology course title, or null.
+// Schoology adds hidden text like "Course" right after section names.
+export const cleanCourseText = (s) => (s ?? '').replace(/(?<=\S)Course$/, '').trim();
+
+// Best-matching planner class for a Schoology course, or null. Bolles section
+// names include the period ("MS_Period 2"), which is the most reliable match.
 export function matchClass(course, classes) {
+  const period = /period\s*(\d)\b/i.exec(`${course.section ?? ''} ${course.title}`)?.[1];
+  if (period) {
+    const byPeriod = (classes ?? []).find((c) => Number(c.period) === Number(period) && c.name);
+    if (byPeriod) return byPeriod;
+  }
   const title = norm(`${course.title} ${course.section ?? ''}`);
   const tw = words(title);
   let best = null;
@@ -74,7 +83,8 @@ export function matchClass(course, classes) {
     const name = norm(c.name);
     if (!name) continue;
     let score = 0;
-    if (title.includes(name)) score = 10 + name.length;
+    // Whole words only: "PE" must not match the "pe" in "Period".
+    if (` ${title} `.includes(` ${name} `)) score = 10 + name.length;
     else {
       const cw = words(name);
       const shared = [...cw].filter((w) => tw.has(w)).length;
