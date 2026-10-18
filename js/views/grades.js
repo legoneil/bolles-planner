@@ -9,7 +9,12 @@ const ago = (t, now) => {
   return h < 48 ? `${h} h ago` : `${Math.round(h / 24)} days ago`;
 };
 
-const gradeText = (g) => g.display ?? (g.percent !== null ? `${g.percent}%` : g.letter ?? '—');
+const gradeText = (g) => {
+  const pct = g.percent !== null ? `${g.percent}%` : null;
+  const letter = g.letter ?? (/^[A-F][+-]?$/.test(g.display ?? '') ? g.display : null);
+  if (letter && pct) return `${letter} · ${pct}`;
+  return pct ?? g.display ?? letter ?? '—';
+};
 const LETTER_TONE = { A: 'g-high', B: 'g-mid', C: 'g-low', D: 'g-alert', F: 'g-alert' };
 const tone = (g) => {
   if (g.percent !== null) return g.percent >= 90 ? 'g-high' : g.percent >= 80 ? 'g-mid' : g.percent >= 70 ? 'g-low' : 'g-alert';

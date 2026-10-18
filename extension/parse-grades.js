@@ -21,7 +21,13 @@
     return m ? Number(m[0]) : null;
   };
 
-  // "94.5%", "A-", "18 / 20", "Missing"
+  const PCT = /(-?\d+(?:\.\d+)?)\s*%/;
+  const HINT_ATTRS = ['title', 'aria-label', 'data-original-title', 'data-title', 'data-grade', 'data-percentage'];
+  const attrValues = (cell) =>
+    [cell, ...cell.querySelectorAll('*')].flatMap((el) => HINT_ATTRS.map((a) => el.getAttribute(a)).filter(Boolean));
+
+  // "94.5%", "A-", "18 / 20", "Missing". Schoology often shows a letter and
+  // keeps the percentage in a tooltip (title attribute) or hidden text.
   function readGrade(cell) {
     if (!cell) return { display: null, score: null, max: null, percent: null, status: null };
     const awarded = first(cell, ['.awarded-grade', '.rounded-grade', '.grade-value', '.numeric-grade', '.grade']);
@@ -30,10 +36,11 @@
     // Without a separate score element, the cell is e.g. "Missing / 20": drop the max.
     const awardedText = text(awarded) || clean(text(cell).replace(maxText, ''));
     const status = /missing|excused|incomplete|not graded|pending/i.exec(text(cell))?.[0] ?? null;
-    const score = num(exact ?? awardedText);
+    const score = num(exact && !PCT.test(exact) ? exact : awardedText);
     const max = num(maxText);
+    const pctSource = [awardedText, ...attrValues(cell), text(cell)].find((v) => PCT.test(v));
     let percent = null;
-    if (/%/.test(awardedText)) percent = num(awardedText);
+    if (pctSource) percent = Number(PCT.exec(pctSource)[1]);
     else if (score !== null && max) percent = Math.round((score / max) * 1000) / 10;
     const letter = /(?:^|\s)([A-F][+-]?)(?=\s|$)/.exec(awardedText)?.[1] ?? null;
     const display = clean(awardedText.replace(maxText, '')) || null;
@@ -91,14 +98,22 @@
   }
 
   // A grade-free outline of the page structure, for debugging selectors.
+  // Instead of text it notes the *kind* of value an element holds: [%] for a
+  // percentage, [letter], [num], and attributes holding a percentage ({title:%}).
+  const kind = (s) => (PCT.test(s) ? '%' : /^[A-F][+-]?$/.test(s) ? 'letter' : /\d/.test(s) ? 'num' : null);
   function describeLayout(doc) {
     const lines = [];
     const walk = (el, depth) => {
-      if (depth > 9 || lines.length > 400) return;
+      if (depth > 12 || lines.length > 600) return;
       const cls = [...el.classList].slice(0, 4).join('.');
       const tag = el.tagName.toLowerCase();
       if (['script', 'style', 'svg', 'noscript'].includes(tag)) return;
-      lines.push(`${'  '.repeat(depth)}${tag}${el.id ? `#${el.id}` : ''}${cls ? `.${cls}` : ''}`);
+      const own = clean([...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(' '));
+      const textKind = own ? kind(own) : null;
+      const attrs = HINT_ATTRS.filter((a) => el.hasAttribute(a)).map((a) => `${a}:${kind(clean(el.getAttribute(a))) ?? 'text'}`);
+      lines.push(
+        `${'  '.repeat(depth)}${tag}${el.id ? `#${el.id}` : ''}${cls ? `.${cls}` : ''}${textKind ? ` [${textKind}]` : ''}${attrs.length ? ` {${attrs.join(', ')}}` : ''}`,
+      );
       for (const child of el.children) walk(child, depth + 1);
     };
     const main = doc.querySelector('#main-inner, #main, main, #content-wrapper') ?? doc.body;

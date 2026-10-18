@@ -17,10 +17,12 @@ async function readFrom(doc, url) {
     });
     return;
   }
+  const withPercent = data.courses.filter((c) => c.percent !== null).length;
   await save({
     grades: { ...data, url, domain: location.hostname },
-    status: { ok: true, at: Date.now(), message: `Read ${data.courses.length} courses.` },
-    layout: null,
+    status: { ok: true, at: Date.now(), message: `Read ${data.courses.length} courses (${withPercent} with percentages).` },
+    // Grade-free outline, kept so "Copy debug info" works even when reading succeeds.
+    layout: BollesGrades.describeLayout(doc),
   });
 }
 
