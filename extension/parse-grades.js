@@ -103,21 +103,37 @@
   const kind = (s) => (PCT.test(s) ? '%' : /^[A-F][+-]?$/.test(s) ? 'letter' : /\d/.test(s) ? 'num' : null);
   function describeLayout(doc) {
     const lines = [];
-    const walk = (el, depth) => {
-      if (depth > 12 || lines.length > 600) return;
-      const cls = [...el.classList].slice(0, 4).join('.');
+    // Names of hint and data-* attributes, with the kind of value (never the value).
+    const attrInfo = (el) =>
+      [...el.attributes]
+        .filter((a) => HINT_ATTRS.includes(a.name) || a.name.startsWith('data-'))
+        .slice(0, 8)
+        .map((a) => `${a.name}:${kind(clean(a.value)) ?? (a.value ? 'text' : 'empty')}`);
+    const walk = (el, depth, maxDepth) => {
+      if (depth > maxDepth || lines.length > 900) return;
+      const cls = [...el.classList].slice(0, 6).join('.');
       const tag = el.tagName.toLowerCase();
       if (['script', 'style', 'svg', 'noscript'].includes(tag)) return;
       const own = clean([...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent).join(' '));
-      const textKind = own ? kind(own) : null;
-      const attrs = HINT_ATTRS.filter((a) => el.hasAttribute(a)).map((a) => `${a}:${kind(clean(el.getAttribute(a))) ?? 'text'}`);
+      const textKind = own ? (kind(own) ?? 'txt') : null;
+      const attrs = attrInfo(el);
       lines.push(
         `${'  '.repeat(depth)}${tag}${el.id ? `#${el.id}` : ''}${cls ? `.${cls}` : ''}${textKind ? ` [${textKind}]` : ''}${attrs.length ? ` {${attrs.join(', ')}}` : ''}`,
       );
-      for (const child of el.children) walk(child, depth + 1);
+      for (const child of el.children) walk(child, depth + 1, maxDepth);
     };
-    const main = doc.querySelector('#main-inner, #main, main, #content-wrapper') ?? doc.body;
-    walk(main, 0);
+    const courses = [...doc.querySelectorAll('.gradebook-course')];
+    if (courses.length) {
+      // The courses are deeply nested; outline the first two from the top.
+      lines.push(`${courses.length} courses on page`);
+      courses.slice(0, 2).forEach((c, i) => {
+        lines.push(`--- course ${i + 1}`);
+        walk(c, 0, 30);
+      });
+    } else {
+      const main = doc.querySelector('#main-inner') ?? doc.querySelector('#main') ?? doc.querySelector('#content-wrapper') ?? doc.body;
+      walk(main, 0, 16);
+    }
     return lines.join('\n');
   }
 
