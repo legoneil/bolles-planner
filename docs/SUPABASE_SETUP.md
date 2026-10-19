@@ -2,7 +2,7 @@
 
 Accounts let students sign in and see the same planner on their phone and laptop. The planner uses [Supabase](https://supabase.com) for this, and the free plan is enough. Setup takes about 20 minutes, including email (see *Before lots of students sign up*), and you only do it once.
 
-> **This project's live setup:** the site is at https://legoneil.github.io/rotation-planner/ (GitHub Pages from the `claude/zealous-fermat-gt2k97` branch; the repo is public because free GitHub Pages requires it). Supabase uses a publishable key and Gmail SMTP from `bollesplanner@gmail.com`.
+> **This project's live setup:** the site is at https://legoneil.github.io/rotation-planner/ (GitHub Pages from the `claude/zealous-fermat-gt2k97` branch; the repo is public because free GitHub Pages requires it). Supabase uses a publishable key and Gmail SMTP from `rotationplanner@gmail.com`.
 
 > **If the site's address changes** (for example after renaming the GitHub repo): update **Authentication → URL Configuration** (Site URL and Redirect URLs) to the new address. The Edge Functions only check the origin (`https://legoneil.github.io`), so they don't need changes. To forward the old address, put [`tools/old-address/index.html`](../tools/old-address/index.html) in a new repo with the old name and turn on GitHub Pages for it.
 
@@ -105,17 +105,17 @@ Supabase's built-in email sender only delivers to people on the Supabase project
 
 **What this project uses: Gmail SMTP**
 
-1. A separate Gmail account just for the app: `bollesplanner@gmail.com`.
+1. A separate Gmail account just for the app: `rotationplanner@gmail.com`.
 2. On that account, turn on **2-Step Verification**, then create an **app password** (Google Account → Security → App passwords) named "Supabase".
 3. In Supabase, open **Authentication → Emails → SMTP Settings**, turn on **custom SMTP** and enter:
 
    | Setting | Value |
    | --- | --- |
-   | Sender email | `bollesplanner@gmail.com` |
+   | Sender email | `rotationplanner@gmail.com` |
    | Sender name | `Rotation Planner` |
    | Host | `smtp.gmail.com` |
    | Port | `465` |
-   | Username | `bollesplanner@gmail.com` |
+   | Username | `rotationplanner@gmail.com` |
    | Password | the app password (store it only in Supabase, never in the repo) |
 
 4. Save, then test it: send yourself a password-reset email from the app's sign-in screen and check that it arrives.
@@ -128,7 +128,7 @@ Turning on custom SMTP raises Supabase's limit to 30 emails an hour. You can cha
 - Changing the Gmail account's password deletes its app passwords. Sign-up and password-reset emails stop until you make a new app password and paste it into Supabase.
 - Some confirmation emails may land in spam. Tell students to check there.
 
-**Switching to Resend later.** [Resend](https://resend.com) is the better long-term setup, but it needs a domain you own (for example `bollesplanner.com`, about $10–15 a year). On the free plan, without a verified domain, Resend only sends to your own address. A `github.io` address can't be verified. Once you have a domain, verify it in Resend, then swap the SMTP settings above for Resend's.
+**Switching to Resend later.** [Resend](https://resend.com) is the better long-term setup, but it needs a domain you own (for example `rotationplanner.com`, about $10–15 a year). On the free plan, without a verified domain, Resend only sends to your own address. A `github.io` address can't be verified. Once you have a domain, verify it in Resend, then swap the SMTP settings above for Resend's.
 
 ### Other things to know
 

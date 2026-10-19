@@ -62,14 +62,14 @@ test('a browser can decrypt what we send, with fresh random keys', async () => {
 test('VAPID token is signed by our key, for the push service origin, and expires', async () => {
   const vapid = await generateVapidKeys();
   const now = Date.UTC(2026, 10, 2, 12);
-  const header = await vapidAuthorization('https://fcm.googleapis.com/fcm/send/abc', vapid, 'mailto:bollesplanner@gmail.com', now);
+  const header = await vapidAuthorization('https://fcm.googleapis.com/fcm/send/abc', vapid, 'mailto:rotationplanner@gmail.com', now);
   const [, token, k] = /^vapid t=([^,]+), k=(.+)$/.exec(header);
   assert.equal(k, vapid.publicKey);
   const [h, c, s] = token.split('.');
   const claims = JSON.parse(dec.decode(b64u.decode(c)));
   assert.equal(claims.aud, 'https://fcm.googleapis.com');
   assert.equal(claims.exp, now / 1000 + 12 * 3600);
-  assert.equal(claims.sub, 'mailto:bollesplanner@gmail.com');
+  assert.equal(claims.sub, 'mailto:rotationplanner@gmail.com');
   const pub = await crypto.subtle.importKey('raw', b64u.decode(vapid.publicKey), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
   assert.ok(await crypto.subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, pub, b64u.decode(s), enc.encode(`${h}.${c}`)));
 });

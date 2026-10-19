@@ -14,7 +14,7 @@
 // supabase/push-cron.sql. See docs/SUPABASE_SETUP.md.
 
 const ALLOWED_ORIGINS = ['https://legoneil.github.io', 'http://localhost:4173'];
-const SUBJECT = 'mailto:bollesplanner@gmail.com';
+const SUBJECT = 'mailto:rotationplanner@gmail.com';
 const PUSH_HOSTS =
   /^https:\/\/(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9-]+\.push\.apple\.com|[a-z0-9.-]+\.notify\.windows\.com)\//;
 
