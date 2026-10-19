@@ -149,6 +149,7 @@ export function renderSettings(ctx) {
       <h2>About</h2>
       <p>A student-made planner for The Bolles School. It is <b>not</b> an official Bolles app and is not affiliated with or endorsed by the school.
         Schedules come from the 2026-27 student planners. Always check official school communications for changes.</p>
+      <p><a href="privacy.html">Privacy policy</a>: what the planner stores, who can see it, and how to delete it.</p>
       <button class="link-btn danger" data-action="reset">${ctx.account?.status === 'signed-in' ? 'Erase all planner data (this device and your account)' : 'Erase all planner data'}</button>
     </section>`;
 }

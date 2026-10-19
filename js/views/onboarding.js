@@ -11,7 +11,7 @@ export function renderOnboarding(draft, { accounts = false } = {}) {
         <p class="eyebrow">Welcome</p>
         <h1>Rotation Planner</h1>
         <p class="lead">Your letter days, classes, homework and tests in one place. Set it up in about a minute.</p>
-        <p class="muted small">Made by a Bolles student for Bolles students. Not affiliated with The Bolles School.</p>
+        <p class="muted small">Made by a Bolles student for Bolles students. Not affiliated with The Bolles School. <a href="privacy.html">Privacy</a></p>
         ${accounts ? '<p class="have-account">Already set up on another device? <button class="link-btn" data-action="open-auth" data-mode="signin">Sign in</button></p>' : ''}
         <form data-form="onboard-school" class="stack">
           <fieldset>

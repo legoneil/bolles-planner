@@ -124,6 +124,9 @@ export const sendTestPush = () =>
     throw new Error(`The test didn’t reach any device.${why ? ` ${why}` : ''}`);
   });
 
+// Erasing the planner: drop this account's waiting reminders.
+export const clearReminders = () => rpc('clear_push_queue', {}).catch(() => {});
+
 export function setNotifyPref(key, value) {
   update((s) => {
     s.settings.notify = { ...notifyPrefs(s), [key]: value };

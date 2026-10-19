@@ -58,7 +58,7 @@ import {
   update,
 } from './store.js';
 import { clearGrades, extension, initGrades, onExtensionChange, refreshGradesNow } from './grades.js';
-import { disablePush, enablePush, initPush, onPushChange, push, sendTestPush, setNotifyPref } from './notify.js';
+import { clearReminders, disablePush, enablePush, initPush, onPushChange, push, sendTestPush, setNotifyPref } from './notify.js';
 import { renderDay } from './views/day.js';
 import { renderGrades } from './views/grades.js';
 import { renderFriendCompare, renderFriends } from './views/friends.js';
@@ -333,12 +333,18 @@ const actions = {
   reset: () => {
     const signedIn = account.status === 'signed-in';
     const msg = signedIn
-      ? 'Erase all classes, assignments and settings on this device AND in your account? This cannot be undone.'
+      ? 'Erase your classes, assignments, settings, grades, reminders and friends profile, on this device AND in your account? This cannot be undone.'
       : 'Erase all classes, assignments and settings on this device? This cannot be undone.';
     if (!confirm(msg)) return;
-    // Signed in: erase as a normal edit so the deletion syncs to the account.
-    if (signedIn) update((s) => ({ ...freshState(), ownerId: s.ownerId }));
-    else resetState();
+    // Signed in: erase as a normal edit so the deletion syncs to the account,
+    // and clear what's stored outside the planner too (see privacy.html).
+    if (signedIn) {
+      update((s) => ({ ...freshState(), ownerId: s.ownerId }));
+      clearGrades();
+      clearReminders();
+      disablePush();
+      if (friends.me) leaveFriends().catch(() => {});
+    } else resetState();
     ui.onboarding = { step: 1, campus: null, grade: null, classes: defaultClasses() };
     location.hash = '#/today';
   },
