@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 
 import { PGlite } from '@electric-sql/pglite';
 
-const SQL_FILES = ['schema.sql', 'friends.sql'];
+const SQL_FILES = ['schema.sql', 'friends.sql', 'push.sql'];
 
 const BOOTSTRAP = `
   create schema auth;
@@ -16,12 +16,16 @@ const BOOTSTRAP = `
     as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
   create role anon nologin;
   create role authenticated nologin;
-  grant usage on schema public, auth to anon, authenticated;
+  create role service_role nologin bypassrls;
+  grant usage on schema public, auth to anon, authenticated, service_role;
   grant execute on function auth.uid() to anon, authenticated;
   -- Supabase grants new public tables and functions to these roles by default.
-  alter default privileges in schema public grant all on tables to anon, authenticated;
-  alter default privileges in schema public grant all on functions to anon, authenticated;
+  alter default privileges in schema public grant all on tables to anon, authenticated, service_role;
+  alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
 `;
+
+// Pass as `uid` to act as the server (Supabase's service_role).
+export const SERVICE = 'service';
 
 const IDENT = /^[a-z_][a-z0-9_]*$/;
 const ident = (s) => {
@@ -39,8 +43,8 @@ export async function createSim(root = new URL('../../supabase/', import.meta.ur
   let queue = Promise.resolve();
   const as = (uid, fn) => {
     const run = queue.then(async () => {
-      await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [uid ?? '']);
-      await db.exec(`set role ${uid ? 'authenticated' : 'anon'}`);
+      await db.query(`select set_config('request.jwt.claim.sub', $1, false)`, [uid === SERVICE ? '' : (uid ?? '')]);
+      await db.exec(`set role ${uid === SERVICE ? 'service_role' : uid ? 'authenticated' : 'anon'}`);
       try {
         return await fn(db);
       } finally {

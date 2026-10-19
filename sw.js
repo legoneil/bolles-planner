@@ -1,6 +1,6 @@
 // Offline support: serve the app shell from cache when the network is down,
 // but always prefer the network so updates show up right away.
-const CACHE = 'bolles-planner-v6';
+const CACHE = 'bolles-planner-v7';
 const SHELL = [
   './',
   'index.html',
@@ -17,7 +17,9 @@ const SHELL = [
   'js/friends.js',
   'js/grades.js',
   'js/ical.js',
+  'js/notify.js',
   'js/planner.js',
+  'js/reminders.js',
   'js/schedule.js',
   'js/store.js',
   'js/study.js',
@@ -61,5 +63,37 @@ self.addEventListener('fetch', (e) => {
         return res;
       })
       .catch(() => caches.match(e.request, { ignoreSearch: true })),
+  );
+});
+
+// Reminders from the server (supabase/functions/push).
+self.addEventListener('push', (e) => {
+  let msg = {};
+  try {
+    msg = e.data?.json() ?? {};
+  } catch {
+    msg = { body: e.data?.text() ?? '' };
+  }
+  e.waitUntil(
+    self.registration.showNotification(msg.title || 'Bolles Planner', {
+      body: msg.body || '',
+      icon: 'icons/icon-192.png',
+      badge: 'icons/badge.png',
+      tag: msg.tag,
+      data: { url: msg.url || '#/today' },
+    }),
+  );
+});
+
+// Tapping a reminder opens the planner on the right page.
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = new URL(e.notification.data?.url ?? '#/today', self.registration.scope).href;
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((w) => w.url.startsWith(self.registration.scope));
+      if (open) return open.focus().then((w) => w.navigate?.(url) ?? w);
+      return self.clients.openWindow(url);
+    }),
   );
 });

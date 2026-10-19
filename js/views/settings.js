@@ -1,4 +1,5 @@
 import { budgetPicker } from './plan.js';
+import { buildReminders, notifyPrefs } from '../reminders.js';
 import { CAMPUSES } from '../data/bolles-2026-27.js';
 import { formatDate, formatRange } from '../dates.js';
 import { className, esc, ordinal } from '../ui.js';
@@ -15,6 +16,7 @@ export function renderSettings(ctx) {
   return `
     <header class="view-head"><div class="day-title"><h1>Settings</h1></div></header>
     ${accountCard(ctx.account)}
+    ${notificationsCard(ctx)}
 
     <section class="card">
       <h2>Your school</h2>
@@ -146,6 +148,72 @@ export function renderSettings(ctx) {
         Schedules come from the 2026-27 student planners. Always check official school communications for changes.</p>
       <button class="link-btn danger" data-action="reset">${ctx.account?.status === 'signed-in' ? 'Erase all planner data (this device and your account)' : 'Erase all planner data'}</button>
     </section>`;
+}
+
+const KINDS = [
+  ['morning', 'morningTime', 'Morning', 'Letter day, first class and room, tests today'],
+  ['evening', 'eveningTime', 'Night before', 'What’s due tomorrow, tests first'],
+  ['plan', 'planTime', 'Study plan', 'How long tonight will take, and what to do'],
+  ['weekAhead', null, 'Week ahead', 'A warning when a day has 3 or more tests'],
+];
+
+function notificationsCard(ctx) {
+  const { account, push } = ctx;
+  if (!account || account.status === 'disabled' || !push) return '';
+  const prefs = notifyPrefs(ctx.state);
+  const head = '<h2>Notifications</h2>';
+  if (account.status !== 'signed-in') {
+    return `<section class="card">${head}<p class="muted">Sign in to get reminders on your phone: tests tomorrow, your letter day each morning, and tonight’s study plan.</p></section>`;
+  }
+
+  let device;
+  if (push.support === 'ios-browser') {
+    device = `<div class="notice">
+      <p><b>On iPhone, add the planner to your Home Screen first.</b></p>
+      <ol class="steps small">
+        <li>Tap the <b>Share</b> button in Safari.</li>
+        <li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+        <li>Open Bolles Planner from your Home Screen and come back here.</li>
+      </ol>
+    </div>`;
+  } else if (push.support !== 'ok') {
+    device = '<p class="muted small">This browser can’t show notifications. Try Chrome, Edge, Firefox or Safari.</p>';
+  } else if (push.permission === 'denied') {
+    device = '<p class="warning">Notifications are blocked for this site. Allow them in your browser’s site settings (or Settings → Notifications on iPhone), then reload.</p>';
+  } else if (push.subscribed) {
+    device = `<div class="notify-status"><span class="dot-on" aria-hidden="true"></span><b>On for this device</b></div>
+      <div class="btn-row">
+        <button class="btn secondary small" data-action="push-test" ${push.busy ? 'disabled' : ''}>Send a test</button>
+        <button class="btn secondary small" data-action="push-disable" ${push.busy ? 'disabled' : ''}>Turn off on this device</button>
+      </div>`;
+  } else {
+    device = `<p class="muted">Get reminders on this ${/iPhone|Android/.test(navigator.userAgent) ? 'phone' : 'device'}, even when the planner is closed.</p>
+      <button class="btn" data-action="push-enable" ${push.busy ? 'disabled' : ''}>${push.busy ? 'Turning on…' : 'Turn on notifications'}</button>`;
+  }
+
+  const kinds = KINDS.map(
+    ([key, timeKey, label, hint]) => `<li class="notify-kind">
+      <label class="switch-row"><input type="checkbox" role="switch" data-action="notify-pref" data-pref="${key}" ${prefs[key] ? 'checked' : ''} />
+        <span><b>${label}</b><small>${hint}</small></span></label>
+      ${timeKey ? `<input type="time" class="time-input" data-action="notify-time" data-pref="${timeKey}" value="${esc(prefs[timeKey])}" aria-label="${label} time" ${prefs[key] ? '' : 'disabled'} />` : ''}
+    </li>`,
+  ).join('');
+
+  const upcoming = prefs.enabled ? buildReminders(ctx, prefs).slice(0, 3) : [];
+  const preview = upcoming.length
+    ? `<div class="notify-preview"><p class="eyebrow">Coming up</p><ul>${upcoming
+        .map((r) => `<li><span class="np-when">${esc(r.sendAt.toLocaleString('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' }))}</span>
+          <span class="np-msg"><b>${esc(r.title)}</b><small>${esc(r.body)}</small></span></li>`)
+        .join('')}</ul></div>`
+    : '';
+
+  return `<section class="card">
+    ${head}
+    ${device}
+    ${push.error ? `<p class="error small">${esc(push.error)}</p>` : ''}
+    <ul class="notify-kinds">${kinds}</ul>
+    ${preview}
+  </section>`;
 }
 
 function accountCard(account) {

@@ -2695,3 +2695,159 @@ body.onboarding {
 .icon-btn:has(.chev-ico) {
   padding: 0;
 }
+
+/* ---------- Notifications ---------- */
+
+.notice {
+  background: var(--accent-soft);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.notice .steps {
+  margin: 8px 0 0;
+}
+
+.notify-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.dot-on {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 4px var(--ok-soft);
+}
+
+.notify-kinds {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.notify-kind {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.switch-row {
+  flex: 1;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.switch-row span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.switch-row b {
+  font-weight: 600;
+}
+
+.switch-row small {
+  color: var(--muted);
+  font-weight: 450;
+  font-size: 0.8rem;
+}
+
+input[role='switch'] {
+  appearance: none;
+  flex: none;
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--surface-3);
+  cursor: pointer;
+  transition: background 0.2s var(--ease);
+}
+
+input[role='switch']::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 25%);
+  transition: transform 0.2s var(--ease);
+}
+
+input[role='switch']:checked {
+  background: var(--ok);
+}
+
+input[role='switch']:checked::after {
+  transform: translateX(18px);
+}
+
+input.time-input {
+  flex: none;
+  width: auto;
+  min-height: 38px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+input.time-input:disabled {
+  opacity: 0.4;
+}
+
+.notify-preview {
+  margin-top: 16px;
+}
+
+.notify-preview ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.notify-preview li {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.np-when {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  padding-top: 2px;
+}
+
+.np-msg {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: 0.88rem;
+}
+
+.np-msg small {
+  color: var(--text-2);
+  font-size: 0.8rem;
+}

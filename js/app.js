@@ -58,6 +58,7 @@ import {
   update,
 } from './store.js';
 import { extension, initGrades, onExtensionChange } from './grades.js';
+import { disablePush, enablePush, initPush, onPushChange, push, sendTestPush, setNotifyPref } from './notify.js';
 import { renderDay } from './views/day.js';
 import { renderGrades } from './views/grades.js';
 import { renderFriendCompare, renderFriends } from './views/friends.js';
@@ -97,7 +98,7 @@ function render() {
     $view.innerHTML = renderOnboarding(ui.onboarding, { accounts: accountsEnabled && account.status !== 'signed-in' });
     return;
   }
-  const ctx = { ...makeContext(state), account, extension };
+  const ctx = { ...makeContext(state), account, extension, push };
   const { name, arg } = route();
   const valid = (s) => /^\d{4}-\d{2}-\d{2}$/.test(s ?? '');
   let html;
@@ -309,6 +310,12 @@ const actions = {
     update((s) => {
       s.settings.theme = el.dataset.theme;
     }),
+  'push-enable': () => enablePush(),
+  'push-disable': () => disablePush(),
+  'push-test': async () => {
+    await sendTestPush();
+    if (!push.error) toast('Test sent. It should arrive in a few seconds.');
+  },
   'set-budget': (el) =>
     update((s) => {
       s.settings.studyBudget = Number(el.dataset.minutes) || null;
@@ -597,6 +604,8 @@ document.addEventListener('change', async (e) => {
       s.profile.campus = el.value;
       if (!CAMPUSES[el.value].grades.includes(Number(s.profile.grade))) s.profile.grade = CAMPUSES[el.value].grades[0];
     });
+  else if (action === 'notify-pref') setNotifyPref(el.dataset.pref, el.checked);
+  else if (action === 'notify-time' && /^\d{2}:\d{2}$/.test(el.value)) setNotifyPref(el.dataset.pref, el.value);
   else if (action === 'set-grade')
     update((s) => {
       s.profile.grade = Number(el.value);
@@ -669,6 +678,8 @@ onFriendsChange(() => {
 initFriends();
 initGrades();
 onExtensionChange(() => ['grades', 'settings'].includes(route().name) && render());
+onPushChange(() => route().name === 'settings' && render());
+initPush();
 initAccount({ onPasswordRecovery: () => openSheet(newPasswordForm()) });
 
 // Keep "now / next" fresh and roll over at midnight.

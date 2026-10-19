@@ -68,6 +68,25 @@ What the function does:
 
 Grades aren't in Schoology's calendar feed. Grades would need Schoology's official API, which Bolles has turned off for students.
 
+## 6. Turn on notifications
+
+Reminders reach students' phones and laptops even when the planner is closed: the night before tests, their letter day each morning, tonight's study plan, and a week's warning for days with 3 or more tests.
+
+1. **Database:** in the SQL Editor, run everything in [`supabase/push.sql`](../supabase/push.sql).
+2. **Function:** open **Edge Functions → Deploy a new function → Via Editor**, name it exactly `push`, replace the sample code with everything in [`supabase/functions/push/index.ts`](../supabase/functions/push/index.ts) and click **Deploy**. Then turn **off** "Verify JWT" in the function's settings, as with `schoology-ical`.
+3. **Schedule:** in the SQL Editor, run [`supabase/push-cron.sql`](../supabase/push-cron.sql). It calls the function every 5 minutes to send whatever is due. (If it says `pg_cron` or `pg_net` isn't available, turn them on under **Database → Extensions** and run it again.)
+4. **Test:** sign in to the planner, open **Settings → Notifications**, tap **Turn on notifications**, allow them, then tap **Send a test**.
+
+On iPhone, notifications only work after adding the planner to the Home Screen (Safari → Share → Add to Home Screen) and opening it from there. This needs iOS 16.4 or later.
+
+There are no keys to copy. The function makes its own push keys the first time it runs and keeps them in the `push_config` table, which only the server can read. The scheduler reads a random secret from the same table, so nobody else can trigger sends.
+
+How it works:
+
+- When the planner changes (and each time it's opened), it works out the next two weeks of reminders and saves them to `push_queue`. Students can only see and replace their own.
+- Every 5 minutes the function sends reminders that are due and marks them sent, so each is sent once. Reminders more than 3 hours late are skipped.
+- Messages are encrypted so only the student's device can read them (the Web Push standard). Devices that are gone, for example after a student turns notifications off in their phone settings, are removed automatically.
+
 ## Before lots of students sign up
 
 ### Email (needed before anyone outside the project can sign up)
