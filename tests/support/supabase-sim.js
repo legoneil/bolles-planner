@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 
 import { PGlite } from '@electric-sql/pglite';
 
-const SQL_FILES = ['schema.sql', 'friends.sql', 'push.sql'];
+const SQL_FILES = ['schema.sql', 'friends.sql', 'push.sql', 'grades.sql'];
 
 const BOOTSTRAP = `
   create schema auth;

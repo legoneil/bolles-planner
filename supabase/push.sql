@@ -110,7 +110,7 @@ declare
   waiting int;
 begin
   if uid is null then raise exception 'not signed in' using errcode = '28000'; end if;
-  if jsonb_typeof(items) <> 'array' or jsonb_array_length(items) > 200 then
+  if jsonb_typeof(items) is distinct from 'array' or jsonb_array_length(items) > 200 then
     raise exception 'expected a list of at most 200 reminders' using errcode = '22023';
   end if;
   delete from public.push_queue q where q.user_id = uid and (q.sent_at is null or q.sent_at < now() - interval '40 days');

@@ -77,9 +77,12 @@ export function renderSettings(ctx) {
       ${state.grades?.courses?.length
         ? `<p class="muted">${state.grades.courses.length} courses from Schoology, updated ${esc(new Date(state.grades.readAt).toLocaleString())}. <button class="link-btn" data-nav="#/grades">See grades</button></p>`
         : '<p class="muted">Bring in your Schoology grades with the <b>Bolles Planner Grades</b> Chrome extension on your laptop.</p>'}
-      <p class="muted small">${ctx.extension?.installed ? `Extension connected${ctx.extension.status ? `: ${esc(ctx.extension.status.message)}` : ''}.` : 'Extension not detected in this browser.'}
-        <a href="https://github.com/legoneil/bolles-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">How to install</a></p>
-      ${state.grades ? '<button class="link-btn danger small" data-action="clear-grades">Remove grades from my planner</button>' : ''}
+      <p class="muted small">${gradesSyncText(ctx)}
+        <a href="https://github.com/legoneil/bolles-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">${ctx.extension?.installed ? 'Help' : 'How to install'}</a></p>
+      <div class="btn-row" style="margin-top:12px;align-items:center;gap:16px">
+        ${ctx.extension?.canLink ? '<button class="btn secondary small" data-action="refresh-grades">Check Schoology now</button>' : ''}
+        ${state.grades ? '<button class="link-btn danger small" data-action="clear-grades">Remove grades from my planner</button>' : ''}
+      </div>
     </section>
 
     <section class="card">
@@ -148,6 +151,18 @@ export function renderSettings(ctx) {
         Schedules come from the 2026-27 student planners. Always check official school communications for changes.</p>
       <button class="link-btn danger" data-action="reset">${ctx.account?.status === 'signed-in' ? 'Erase all planner data (this device and your account)' : 'Erase all planner data'}</button>
     </section>`;
+}
+
+function gradesSyncText(ctx) {
+  const ext = ctx.extension;
+  if (!ext?.installed) return 'Extension not detected in this browser.';
+  if (!ext.canLink) return `Extension connected (version ${esc(ext.version ?? '?')}). Update it to keep grades updating on their own.`;
+  const parts = [ext.status?.loggedOut ? '<b>Log in to Schoology in Chrome</b> to keep grades updating.' : 'Grades update every 30 minutes while Chrome is open.'];
+  if (ext.status && !ext.status.ok && !ext.status.loggedOut) parts.push(`Last check: ${esc(ext.status.message)}`);
+  if (ctx.account?.status === 'signed-in') {
+    parts.push(ext.linkedUser === ctx.account.userId ? 'New grades go straight to your account, so your phone stays up to date.' : 'Linking the extension to your account…');
+  }
+  return parts.join(' ');
 }
 
 const KINDS = [

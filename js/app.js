@@ -57,7 +57,7 @@ import {
   uid,
   update,
 } from './store.js';
-import { extension, initGrades, onExtensionChange } from './grades.js';
+import { clearGrades, extension, initGrades, onExtensionChange, refreshGradesNow } from './grades.js';
 import { disablePush, enablePush, initPush, onPushChange, push, sendTestPush, setNotifyPref } from './notify.js';
 import { renderDay } from './views/day.js';
 import { renderGrades } from './views/grades.js';
@@ -343,11 +343,11 @@ const actions = {
     location.hash = '#/today';
   },
   'clear-grades': () => {
-    if (confirm('Remove your grades from the planner (this device and your account)? The extension will add them again next time you open Schoology unless you remove it.')) {
-      update((s) => {
-        s.grades = null;
-      });
-    }
+    if (confirm('Remove your grades from the planner (this device and your account)? The extension will add them again next time you open the planner unless you remove it.')) clearGrades();
+  },
+  'refresh-grades': () => {
+    refreshGradesNow();
+    toast('Checking Schoology…');
   },
   'friends-refresh': () => loadFriends({ force: true }),
   'friend-accept': (el) => friendAction(() => respond(el.dataset.id, true), 'Friend added'),

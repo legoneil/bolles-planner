@@ -4,7 +4,7 @@ Bolles turns off Schoology's API for students, so the planner can't fetch grades
 
 - It only runs on Schoology pages and on the Bolles Planner website.
 - It never sees or stores your Schoology password.
-- Grades go only into your own planner, then sync to your account so your phone shows them too. Friends never see them.
+- Grades go only to your own planner account (using a private link key the planner gives the extension, which can do nothing except save your grades), so your phone shows them too. Friends never see them.
 - Student-made, not affiliated with Bolles or Schoology.
 
 ## Install (about 2 minutes, on a laptop with Chrome)
@@ -19,10 +19,16 @@ School-managed laptops sometimes block step 3. If the Developer mode switch is g
 
 ## Use
 
-1. Log in to Schoology in Chrome as usual. Visiting any Schoology page refreshes your grades in the background (at most every 30 minutes). Opening **Grades** in Schoology refreshes them right away.
-2. Open the planner (https://legoneil.github.io/bolles-planner/) in Chrome on the same laptop. Your grades appear on **Today** and under **Grades**, and sync to your phone if you're signed in.
+1. Log in to Schoology in Chrome as usual, and stay logged in.
+2. Open the planner (https://legoneil.github.io/bolles-planner/) in Chrome once while signed in to your planner account. This links the extension to your account.
 
-The extension's toolbar button shows when it last read your grades.
+That's it. From then on:
+
+- **Grades update on their own** every 30 minutes while Chrome is open, without opening Schoology. Opening **Grades** in Schoology refreshes them right away, and so does **Check Schoology now** (in the planner's Settings, or the extension's toolbar button).
+- **New grades go straight to your account**, so your phone shows them even if the planner isn't open on the laptop.
+- If you get logged out of Schoology, the extension says so; log back in and it picks up again.
+
+The extension's toolbar button shows when it last read your grades and when it last sent them to your account. Signing out of the planner, or **Remove grades from my planner**, stops it sending to your account.
 
 **Letters, not percentages.** The extension shows exactly what your Schoology grades page shows. At Bolles that's letter grades only (course, semester, category and assignment), so the planner shows letters too. The "(50%)" next to a semester or category is how much it counts toward the grade, not a score. Exact percentages are only available through Schoology's official API, which needs an API key from a teacher or administrator.
 
@@ -37,7 +43,7 @@ The debug info is only the page's layout (tag and class names), not your grades,
 
 ## Updating
 
-After pulling new code, go to `chrome://extensions` and click the reload icon on **Bolles Planner Grades**.
+Download the new code, then in `chrome://extensions` click **Remove** on **Bolles Planner Grades** and **Load unpacked** the new `extension` folder. Check the version number matches. Version 0.2.0 asks for two new permissions: running in the background (to check every 30 minutes) and talking to the planner's account server.
 
 ## Sharing with friends
 

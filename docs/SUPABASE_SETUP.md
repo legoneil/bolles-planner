@@ -68,7 +68,15 @@ What the function does:
 
 Grades aren't in Schoology's calendar feed. Grades would need Schoology's official API, which Bolles has turned off for students.
 
-## 6. Turn on notifications
+## 6. Let grades update on their own
+
+The Bolles Planner Grades extension checks a student's Schoology grades every 30 minutes and can send them straight to their account, so their phone stays up to date even when the planner isn't open on the laptop.
+
+1. In the SQL Editor, run everything in [`supabase/grades.sql`](../supabase/grades.sql).
+
+That's all. The planner gives the extension a private link key that can only save grades to that student's account; only a hash of the key is stored. Signing out or removing grades in the planner revokes it. Without this step, grades still work, but only reach the account when the planner is open on the laptop.
+
+## 7. Turn on notifications
 
 Reminders reach students' phones and laptops even when the planner is closed: the night before tests, their letter day each morning, tonight's study plan, and a week's warning for days with 3 or more tests.
 
