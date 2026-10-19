@@ -54,6 +54,12 @@ function whenFrom(from, date) {
   return `on ${relativeDay(date, from)}`;
 }
 
+// ": AP Biology", or nothing when the assignment has no class.
+const classSuffix = (a, ctx) => {
+  const cls = ctx.classesById.get(a.classId);
+  return cls ? `: ${className(cls)}` : '';
+};
+
 const isTestLike = (a) => a.type === 'test' || a.type === 'quiz';
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
@@ -86,8 +92,8 @@ function evening(date, ctx) {
   const quizzes = due.filter((a) => a.type === 'quiz');
   let title;
   if (tests.length >= 2) title = `${tests.length} tests tomorrow`;
-  else if (tests.length === 1) title = `Test tomorrow: ${className(ctx.classesById.get(tests[0].classId))}`;
-  else if (quizzes.length) title = quizzes.length === 1 ? `Quiz tomorrow: ${className(ctx.classesById.get(quizzes[0].classId))}` : `${quizzes.length} quizzes tomorrow`;
+  else if (tests.length === 1) title = `Test tomorrow${classSuffix(tests[0], ctx)}`;
+  else if (quizzes.length) title = quizzes.length === 1 ? `Quiz tomorrow${classSuffix(quizzes[0], ctx)}` : `${quizzes.length} quizzes tomorrow`;
   else title = `Due tomorrow: ${plural(due.length, 'assignment')}`;
   if (day.letter) title += ` (${day.letter} day)`;
   const ordered = [...tests, ...quizzes, ...due.filter((a) => !isTestLike(a))];

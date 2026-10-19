@@ -181,17 +181,24 @@ export async function initPush() {
     emit();
   }
   onLocalChange(scheduleQueueSync);
-  // Account events also fire for every sync; act only when the user changes.
+  // Account events also fire for every sync. On a new user, re-save this
+  // device; after each completed sync, rebuild the reminders from the merged
+  // planner (synced data doesn't count as a local change).
   let user = null;
+  let synced = null;
   onAccountChange(async () => {
-    if (account.userId === user) return;
-    user = account.userId;
-    lastSaved = null;
-    if (account.status !== 'signed-in') return;
-    // Re-save this device in case the browser renewed its subscription.
-    const sub = push.support === 'ok' ? await (await navigator.serviceWorker.getRegistration())?.pushManager.getSubscription().catch(() => null) : null;
-    if (sub && push.permission === 'granted') await saveSubscription(sub).catch(() => {});
-    syncQueue();
+    if (account.userId !== user) {
+      user = account.userId;
+      lastSaved = null;
+      if (account.status !== 'signed-in') return;
+      // Re-save this device in case the browser renewed its subscription.
+      const sub = push.support === 'ok' ? await (await navigator.serviceWorker.getRegistration())?.pushManager.getSubscription().catch(() => null) : null;
+      if (sub && push.permission === 'granted') await saveSubscription(sub).catch(() => {});
+    }
+    if (account.status === 'signed-in' && !account.syncing && account.lastSynced && account.lastSynced !== synced) {
+      synced = account.lastSynced;
+      scheduleQueueSync();
+    }
   });
   // Plans shift as the day goes on; refresh when the app comes back.
   document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && scheduleQueueSync());

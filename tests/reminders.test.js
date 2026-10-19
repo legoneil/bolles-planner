@@ -91,3 +91,8 @@ test('everything fits the server’s limits', () => {
   }
   assert.deepEqual(list.map((r) => r.sendAt), [...list.map((r) => r.sendAt)].sort((x, y) => x - y));
 });
+
+test('a quiz with no class does not say "No class"', () => {
+  const r = byKey(buildReminders(ctxAt([a('Pop quiz', 'quiz', '2026-11-03', null)])));
+  assert.equal(r['eve-2026-11-02'].title, 'Quiz tomorrow (E day)');
+});

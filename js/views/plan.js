@@ -73,7 +73,9 @@ export function sessionRow(s, date, ctx) {
   const cls = ctx.classesById.get(a.classId);
   const when = s.slot === 'free' ? `${esc(s.slotLabel)}${s.start ? ` · ${esc(formatRange(s.start, null))}` : ''}` : 'Evening';
   const what = s.study ? `Study${s.of > 1 ? ` ${s.part} of ${s.of}` : ''}` : typeLabel(a.type);
-  const due = a.dueDate < ctx.today ? 'overdue' : a.dueDate === addDays(date, 1) ? 'due tomorrow' : `due ${relativeDay(a.dueDate, ctx.today)}`;
+  // Always relative to today, whichever day's card this is.
+  const dueDay = relativeDay(a.dueDate, ctx.today);
+  const due = a.dueDate < ctx.today ? 'overdue' : `due ${dueDay === 'Today' || dueDay === 'Tomorrow' ? dueDay.toLowerCase() : dueDay}`;
   const canLog = date <= ctx.today;
   const check = s.study
     ? `<button class="check ${canLog ? '' : 'is-future'}" data-action="log-session" data-id="${esc(a.id)}" data-date="${date}" data-minutes="${s.minutes}"

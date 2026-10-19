@@ -96,16 +96,18 @@ async function submit() {
     const res = await fetch(`${link.url}/rest/v1/rpc/submit_grades`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: link.anonKey },
-      body: JSON.stringify({ token: link.token, grades }),
+      // The server takes at most 20 courses.
+      body: JSON.stringify({ token: link.token, grades: { ...grades, courses: grades.courses.slice(0, 20) } }),
     });
-    if (res.ok) {
-      await chrome.storage.local.set({ link: { ...link, sentReadAt: grades.readAt, sentAt: Date.now(), error: null } });
-      return;
-    }
-    const body = await res.json().catch(() => null);
+    const body = res.ok ? null : await res.json().catch(() => null);
+    // The planner may have unlinked (signed out) while this was in flight:
+    // only touch the link if it's still the one we used.
+    const { link: now } = await chrome.storage.local.get('link');
+    if (now?.token !== link.token) return;
+    if (res.ok) await chrome.storage.local.set({ link: { ...now, sentReadAt: grades.readAt, sentAt: Date.now(), error: null } });
     // The link was revoked (signed out, or grades removed): forget it.
-    if (body?.code === '28000') await chrome.storage.local.remove('link');
-    else await chrome.storage.local.set({ link: { ...link, error: body?.message ?? `HTTP ${res.status}` } });
+    else if (body?.code === '28000') await chrome.storage.local.remove('link');
+    else await chrome.storage.local.set({ link: { ...now, error: body?.message ?? `HTTP ${res.status}` } });
   } catch {
     // Offline: try again after the next reading.
   }

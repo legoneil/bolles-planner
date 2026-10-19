@@ -75,3 +75,26 @@ test('due today is not planned, done work is skipped, and minutes format nicely'
   assert.equal(formatMinutes(120), '2 h');
   assert.equal(formatMinutes(150), '2 h 30 min');
 });
+
+test('after studying today, the rest of a test goes on later days, not today again', () => {
+  const studied = a('bio', 'test', '2026-11-04', { sessions: { '2026-11-02': 60 } });
+  const plan = planWork(ctx([studied]));
+  const today = plan.days.get('2026-11-02').sessions.filter((s) => s.assignment.id === 'bio');
+  assert.deepEqual(today.map((s) => [s.minutes, s.done]), [[60, true]]);
+  const later = [...plan.days.values()].filter((d) => d.date > '2026-11-02').flatMap((d) => d.sessions).reduce((t, s) => t + s.minutes, 0);
+  assert.equal(later, 120 - 60);
+});
+
+test('old overdue work is not piled onto today', () => {
+  const old = Array.from({ length: 40 }, (_, i) => a(`hw${i}`, 'homework', '2026-09-1' + (i % 10)));
+  const recent = a('late', 'homework', '2026-10-30');
+  const plan = planWork(ctx([...old, recent]));
+  assert.deepEqual(plan.days.get('2026-11-02').sessions.map((s) => s.assignment.id), ['late']);
+});
+
+test('homework only goes on a day that has one slot big enough for it', () => {
+  // Tuesday: P4 study hall (60) and a short evening (practice until 7:55 PM).
+  const busy = { activities: [{ id: 'p', title: 'Practice', days: [2], start: '15:30', end: '19:55' }] };
+  const plan = planWork(ctx([a('h1', 'homework', '2026-11-04', { minutes: 45 }), a('h2', 'homework', '2026-11-04', { minutes: 45 })], busy));
+  for (const d of plan.days.values()) assert.equal(d.over, 0, `${d.date} over by ${d.over}`);
+});

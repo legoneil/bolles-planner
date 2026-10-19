@@ -29,6 +29,7 @@ const WEEKEND_STARTS = minutes('09:00');
 const BREAK_MINUTES = 60; // dinner and a breather
 const MIN_SESSION = 15;
 const HORIZON_DAYS = 21;
+const OVERDUE_DAYS = 7; // older unfinished work isn't piled onto today
 
 const round5 = (n) => Math.max(5, Math.round(n / 5) * 5);
 
@@ -91,7 +92,9 @@ function spread(days, count) {
 export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEFAULT_BUDGET } = {}) {
   const today = ctx.today;
   const nowMin = ctx.now ? nowMinutes(ctx.now) : null;
-  const open = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate <= addDays(today, HORIZON_DAYS));
+  const open = ctx.assignments.filter(
+    (a) => !a.done && a.dueDate && a.dueDate <= addDays(today, HORIZON_DAYS) && a.dueDate >= addDays(today, -OVERDUE_DAYS),
+  );
   const work = open
     .filter((a) => a.dueDate > today || a.dueDate < today) // due today: it's due in class, too late to plan
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || Number(isBigWork(b)) - Number(isBigWork(a)) || a.title.localeCompare(b.title));
@@ -131,7 +134,7 @@ export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEF
       // Latest day with room, back to today; otherwise squeeze it into the last evening.
       let target = null;
       for (let d = last; d >= today; d = addDays(d, -1)) {
-        if (freeMinutes(dayOf(d)) >= remaining) {
+        if (roomFor(dayOf(d)) >= remaining) {
           target = d;
           break;
         }
@@ -139,7 +142,9 @@ export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEF
       place(dayOf(target ?? last), a, remaining);
       continue;
     }
-    const first = [addDays(a.dueDate, -kind.days), today].sort().at(-1);
+    // Already studied today: spread the rest from tomorrow (unless it's due tomorrow).
+    const start = a.sessions?.[today] && addDays(today, 1) <= last ? addDays(today, 1) : today;
+    const first = [addDays(a.dueDate, -kind.days), start].sort().at(-1);
     const window = [];
     for (let d = first; d <= last; d = addDays(d, 1)) window.push(d);
     if (!window.length) {
@@ -172,7 +177,8 @@ export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEF
   }
 }
 
-const freeMinutes = (d) => d.slots.reduce((t, s) => t + s.left, 0);
+// Homework goes in one slot: the largest free period or the evening.
+const roomFor = (d) => Math.max(0, ...d.slots.map((s) => s.left));
 
 function session(a, m, slot, extra) {
   return {

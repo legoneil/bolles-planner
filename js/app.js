@@ -324,9 +324,16 @@ const actions = {
   'log-session': (el) => {
     const a = allAssignments().find((x) => x.id === el.dataset.id);
     if (!a) return;
+    // Unticking a done session removes it; ticking a new one adds its minutes
+    // (a day can have more than one session for the same test).
     const sessions = { ...(a.sessions ?? {}) };
-    if (sessions[el.dataset.date]) delete sessions[el.dataset.date];
-    else sessions[el.dataset.date] = Number(el.dataset.minutes);
+    const date = el.dataset.date;
+    const minutes = Number(el.dataset.minutes);
+    if (el.getAttribute('aria-pressed') === 'true') {
+      const left = (Number(sessions[date]) || 0) - minutes;
+      if (left > 0) sessions[date] = left;
+      else delete sessions[date];
+    } else sessions[date] = (Number(sessions[date]) || 0) + minutes;
     saveAssignment({ ...a, sessions });
   },
   backup: () => download(`rotation-planner-backup-${todayISO()}.json`, JSON.stringify(getState(), null, 2), 'application/json'),

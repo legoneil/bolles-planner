@@ -12,7 +12,7 @@ import { account, getClient, onAccountChange } from './account.js';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from './config.js';
 import { getState, update } from './store.js';
 
-export const extension = { installed: false, version: null, status: null, canLink: false, linkedUser: null, linkSentAt: null };
+export const extension = { installed: false, version: null, status: null, canLink: false, linkedUser: null, linkSentAt: null, linkError: null, linkFailed: false };
 
 const listeners = new Set();
 export const onExtensionChange = (fn) => listeners.add(fn);
@@ -34,14 +34,18 @@ async function maybeLink() {
   if (!extension.canLink || account.status !== 'signed-in' || extension.linkedUser === account.userId) return;
   if (linking || linkFailedFor === account.userId) return;
   linking = true;
+  const uid = account.userId;
   try {
     const { data: token, error } = await (await getClient()).rpc('link_grades_extension');
     if (error) throw error;
-    toApp({ type: 'link', token, userId: account.userId, url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY });
+    // Signed out or switched accounts meanwhile: this key belongs to someone else now.
+    if (account.userId !== uid) return;
+    toApp({ type: 'link', token, userId: uid, url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY });
   } catch {
-    linkFailedFor = account.userId; // not set up on the server yet; grades still come through the open planner
+    linkFailedFor = uid; // not set up on the server yet; grades still come through the open planner
   } finally {
     linking = false;
+    extension.linkFailed = linkFailedFor === account.userId;
   }
 }
 
@@ -55,12 +59,15 @@ async function pullGrades() {
 }
 
 export async function clearGrades() {
+  // An empty reading stamped now, so older readings (the extension still has
+  // one) can't bring the grades back. Views treat no courses as no grades.
   update((s) => {
-    s.grades = null;
+    s.grades = { readAt: Date.now(), domain: null, courses: [] };
   });
   if (account.status === 'signed-in') await (await getClient()).rpc('clear_synced_grades').catch(() => {});
   toApp({ type: 'unlink' });
   linkFailedFor = account.userId; // don't relink until the next visit
+  extension.linkFailed = true;
 }
 
 export const refreshGradesNow = () => toApp({ type: 'refresh-now' });
@@ -77,6 +84,8 @@ export function initGrades() {
       canLink: Boolean(msg.canLink),
       linkedUser: msg.linkedUser ?? null,
       linkSentAt: msg.linkSentAt ?? null,
+      linkError: msg.linkError ?? null,
+      linkFailed: linkFailedFor !== null && linkFailedFor === account.userId,
     });
     takeGrades(msg.grades);
     maybeLink();

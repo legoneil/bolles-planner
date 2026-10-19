@@ -81,7 +81,7 @@ export function renderSettings(ctx) {
         <a href="https://github.com/legoneil/rotation-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">${ctx.extension?.installed ? 'Help' : 'How to install'}</a></p>
       <div class="btn-row" style="margin-top:12px;align-items:center;gap:16px">
         ${ctx.extension?.canLink ? '<button class="btn secondary small" data-action="refresh-grades">Check Schoology now</button>' : ''}
-        ${state.grades ? '<button class="link-btn danger small" data-action="clear-grades">Remove grades from my planner</button>' : ''}
+        ${state.grades?.courses?.length ? '<button class="link-btn danger small" data-action="clear-grades">Remove grades from my planner</button>' : ''}
       </div>
     </section>
 
@@ -167,7 +167,11 @@ function gradesSyncText(ctx) {
   ];
   if (ext.status && !ext.status.ok && !ext.status.loggedOut && !ext.status.needsVisit) parts.push(`Last check: ${esc(ext.status.message)}`);
   if (ctx.account?.status === 'signed-in') {
-    parts.push(ext.linkedUser === ctx.account.userId ? 'New grades go straight to your account, so your phone stays up to date.' : 'Linking the extension to your account…');
+    if (ext.linkedUser === ctx.account.userId) {
+      parts.push(ext.linkError ? `Couldn’t send grades to your account: ${esc(ext.linkError)}` : 'New grades go straight to your account, so your phone stays up to date.');
+    } else if (ext.linkFailed) {
+      parts.push('Grades reach your account when this planner is open (the extension isn’t linked to send them directly).');
+    } else parts.push('Linking the extension to your account…');
   }
   return parts.join(' ');
 }
