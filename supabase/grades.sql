@@ -1,4 +1,4 @@
--- Bolles Planner: grades sent straight from the browser extension.
+-- Rotation Planner: grades sent straight from the browser extension.
 -- Run this once after schema.sql: SQL Editor -> New query -> paste -> Run.
 --
 -- The extension checks the student's Schoology grades every 30 minutes and

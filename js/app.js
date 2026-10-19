@@ -329,7 +329,7 @@ const actions = {
     else sessions[el.dataset.date] = Number(el.dataset.minutes);
     saveAssignment({ ...a, sessions });
   },
-  backup: () => download(`bolles-planner-backup-${todayISO()}.json`, JSON.stringify(getState(), null, 2), 'application/json'),
+  backup: () => download(`rotation-planner-backup-${todayISO()}.json`, JSON.stringify(getState(), null, 2), 'application/json'),
   reset: () => {
     const signedIn = account.status === 'signed-in';
     const msg = signedIn
@@ -363,7 +363,7 @@ const actions = {
   },
   'share-code': async (el) => {
     const code = el.dataset.code;
-    const text = `Add me on Bolles Planner! My friend code is ${code.slice(0, 4)}-${code.slice(4)}. ${location.origin}${location.pathname}#/friends`;
+    const text = `Add me on Rotation Planner! My friend code is ${code.slice(0, 4)}-${code.slice(4)}. ${location.origin}${location.pathname}#/friends`;
     try {
       if (navigator.share) await navigator.share({ text });
       else {
@@ -532,7 +532,7 @@ const forms = {
       events: form.events.checked,
       schedule: form.schedule.checked,
     });
-    download('bolles-planner.ics', ics, 'text/calendar');
+    download('rotation-planner.ics', ics, 'text/calendar');
   },
   'onboard-school': (form) => {
     ui.onboarding.campus = form.campus.value;
@@ -619,7 +619,7 @@ document.addEventListener('change', async (e) => {
       if (!data || typeof data !== 'object' || !('assignments' in data)) throw new Error('bad');
       if (confirm('Replace everything on this device with the backup?')) replaceState(data);
     } catch {
-      toast('That file isn’t a Bolles Planner backup.');
+      toast('That file isn’t a Rotation Planner backup.');
     }
   }
   const form = el.closest('form');

@@ -1,4 +1,4 @@
-// Grades arrive from the Bolles Planner Grades browser extension (see
+// Grades arrive from the Rotation Planner Grades browser extension (see
 // extension/), which reads the student's own Schoology grades page. They are
 // saved in the planner (and so to the student's private account row), and
 // never shared with friends.

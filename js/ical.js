@@ -121,12 +121,12 @@ const fold = (line) => {
 };
 
 // items: { uid, title, date, start?, end?, description?, url? }
-export function buildICS(items, calName = 'Bolles Planner') {
+export function buildICS(items, calName = 'Rotation Planner') {
   const dtstamp = stamp();
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Bolles Planner//Student-made//EN',
+    'PRODID:-//Rotation Planner//Student-made//EN',
     'CALSCALE:GREGORIAN',
     `X-WR-CALNAME:${escapeText(calName)}`,
   ];

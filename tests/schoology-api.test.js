@@ -55,7 +55,7 @@ function setup({ configured = true } = {}) {
   return { sgy, call };
 }
 
-const CALLBACK = 'https://legoneil.github.io/bolles-planner/?schoology=callback';
+const CALLBACK = 'https://legoneil.github.io/rotation-planner/?schoology=callback';
 
 async function connect(t) {
   const start = await t.call({ action: 'start', callback: CALLBACK });
@@ -70,7 +70,7 @@ test('full connect: start, approve on Schoology, finish', async () => {
   const u = new URL(start.body.authorizeUrl);
   assert.equal(u.hostname, 'bolles.schoology.com');
   const back = new URL(u.searchParams.get('oauth_callback'));
-  assert.equal(`${back.origin}${back.pathname}`, 'https://legoneil.github.io/bolles-planner/');
+  assert.equal(`${back.origin}${back.pathname}`, 'https://legoneil.github.io/rotation-planner/');
   assert.equal(back.searchParams.get('schoology'), 'callback');
   assert.equal(back.searchParams.get('rs'), start.body.requestSecret);
   assert.equal(u.searchParams.get('oauth_token'), start.body.requestToken);

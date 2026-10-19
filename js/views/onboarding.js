@@ -9,9 +9,9 @@ export function renderOnboarding(draft, { accounts = false } = {}) {
       <section class="onboard">
         <img class="onboard-mark" src="icons/icon.svg" alt="" />
         <p class="eyebrow">Welcome</p>
-        <h1>Bolles Planner</h1>
+        <h1>Rotation Planner</h1>
         <p class="lead">Your letter days, classes, homework and tests in one place. Set it up in about a minute.</p>
-        <p class="muted small">Student-made. Not an official Bolles School app.</p>
+        <p class="muted small">Made by a Bolles student for Bolles students. Not affiliated with The Bolles School.</p>
         ${accounts ? '<p class="have-account">Already set up on another device? <button class="link-btn" data-action="open-auth" data-mode="signin">Sign in</button></p>' : ''}
         <form data-form="onboard-school" class="stack">
           <fieldset>

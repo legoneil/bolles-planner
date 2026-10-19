@@ -1,26 +1,26 @@
-# Bolles Planner Grades (Chrome extension)
+# Rotation Planner Grades (Chrome extension)
 
 Bolles turns off Schoology's API for students, so the planner can't fetch grades directly. This small Chrome extension works around that without anyone's approval: it reads **your own** Schoology grades page, the same page you see when you're logged in, and hands it to your planner.
 
-- It only runs on Schoology pages and on the Bolles Planner website.
+- It only runs on Schoology pages and on the Rotation Planner website.
 - It never sees or stores your Schoology password.
 - Grades go only to your own planner account (using a private link key the planner gives the extension, which can do nothing except save your grades), so your phone shows them too. Friends never see them.
 - Student-made, not affiliated with Bolles or Schoology.
 
 ## Install (about 2 minutes, on a laptop with Chrome)
 
-1. Download the planner's code: open https://github.com/legoneil/bolles-planner, switch to the `claude/zealous-fermat-gt2k97` branch, click **Code → Download ZIP**, and unzip it.
+1. Download the planner's code: open https://github.com/legoneil/rotation-planner, switch to the `claude/zealous-fermat-gt2k97` branch, click **Code → Download ZIP**, and unzip it.
 2. In Chrome, go to `chrome://extensions`.
 3. Turn on **Developer mode** (top right).
 4. Click **Load unpacked** and choose the **`extension`** folder inside the unzipped code.
-5. Pin it: click the puzzle-piece icon in Chrome's toolbar, then the pin next to **Bolles Planner Grades**.
+5. Pin it: click the puzzle-piece icon in Chrome's toolbar, then the pin next to **Rotation Planner Grades**.
 
 School-managed laptops sometimes block step 3. If the Developer mode switch is greyed out, use a personal computer.
 
 ## Use
 
 1. Log in to Schoology in Chrome as usual, and stay logged in.
-2. Open the planner (https://legoneil.github.io/bolles-planner/) in Chrome once while signed in to your planner account. This links the extension to your account.
+2. Open the planner (https://legoneil.github.io/rotation-planner/) in Chrome once while signed in to your planner account. This links the extension to your account.
 
 That's it. From then on:
 
@@ -43,7 +43,7 @@ The debug info is only the page's layout (tag and class names), not your grades,
 
 ## Updating
 
-Download the new code, then in `chrome://extensions` click **Remove** on **Bolles Planner Grades** and **Load unpacked** the new `extension` folder. Check the version number matches. Version 0.2.0 asks for two new permissions: running in the background (to check every 30 minutes) and talking to the planner's account server.
+Download the new code, then in `chrome://extensions` click **Remove** on **Rotation Planner Grades** and **Load unpacked** the new `extension` folder. Check the version number matches. Version 0.2.0 asks for two new permissions: running in the background (to check every 30 minutes) and talking to the planner's account server.
 
 ## Sharing with friends
 

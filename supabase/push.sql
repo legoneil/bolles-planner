@@ -1,4 +1,4 @@
--- Bolles Planner push notifications.
+-- Rotation Planner push notifications.
 -- Run this once after schema.sql: SQL Editor -> New query -> paste -> Run.
 --
 -- How it works: each student's planner works out their upcoming reminders

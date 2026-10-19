@@ -76,9 +76,9 @@ export function renderSettings(ctx) {
       <h2>Grades</h2>
       ${state.grades?.courses?.length
         ? `<p class="muted">${state.grades.courses.length} courses from Schoology, updated ${esc(new Date(state.grades.readAt).toLocaleString())}. <button class="link-btn" data-nav="#/grades">See grades</button></p>`
-        : '<p class="muted">Bring in your Schoology grades with the <b>Bolles Planner Grades</b> Chrome extension on your laptop.</p>'}
+        : '<p class="muted">Bring in your Schoology grades with the <b>Rotation Planner Grades</b> Chrome extension on your laptop.</p>'}
       <p class="muted small">${gradesSyncText(ctx)}
-        <a href="https://github.com/legoneil/bolles-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">${ctx.extension?.installed ? 'Help' : 'How to install'}</a></p>
+        <a href="https://github.com/legoneil/rotation-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">${ctx.extension?.installed ? 'Help' : 'How to install'}</a></p>
       <div class="btn-row" style="margin-top:12px;align-items:center;gap:16px">
         ${ctx.extension?.canLink ? '<button class="btn secondary small" data-action="refresh-grades">Check Schoology now</button>' : ''}
         ${state.grades ? '<button class="link-btn danger small" data-action="clear-grades">Remove grades from my planner</button>' : ''}
@@ -188,7 +188,7 @@ function notificationsCard(ctx) {
       <ol class="steps small">
         <li>Tap the <b>Share</b> button in Safari.</li>
         <li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li>
-        <li>Open Bolles Planner from your Home Screen and come back here.</li>
+        <li>Open Rotation Planner from your Home Screen and come back here.</li>
       </ol>
     </div>`;
   } else if (push.support !== 'ok') {
@@ -269,7 +269,7 @@ function connectCard(ctx) {
   if (!api?.accessToken) {
     if (account.status !== 'signed-in') return '';
     return `<div class="connect-box">
-      <p><b>Connect Schoology</b> to import your courses, assignments and grades automatically. You approve it on Schoology's own site; Bolles Planner never sees your password.</p>
+      <p><b>Connect Schoology</b> to import your courses, assignments and grades automatically. You approve it on Schoology's own site; Rotation Planner never sees your password.</p>
       <button class="btn" data-action="sgy-connect">Connect Schoology</button>
     </div>`;
   }

@@ -1,6 +1,6 @@
-# Bolles Planner
+# Rotation Planner
 
-A student-made planner for The Bolles School. It knows every 2026-27 letter day, bell schedule and school event for both the **Upper School (San Jose)** and **Middle School (Bartram)**, and puts each student's own classes, homework and tests on top of it.
+A student-made planner for students at The Bolles School. It knows every 2026-27 letter day, bell schedule and school event for both the **Upper School (San Jose)** and **Middle School (Bartram)**, and puts each student's own classes, homework and tests on top of it.
 
 > Not an official Bolles School app. Schedules are transcribed from the 2026-27 student planners; always check official school communications for changes.
 
@@ -16,7 +16,7 @@ A student-made planner for The Bolles School. It knows every 2026-27 letter day,
 - **"Due next class":** picks the next date the class actually meets, skipping holidays and letter days without that period.
 - **Upper School lunch:** 3rd-block lunch order (lunch first or class first) is suggested from the planner's teacher list.
 - **Schoology:** paste your Schoology calendar (iCal) link once and assignments sync every time you open the planner (signed-in students), or upload the `.ics` file. Tests and quizzes are recognised from their titles and matched to your classes.
-- **Grades:** the *Bolles Planner Grades* Chrome extension reads your own Schoology grades page on your laptop and brings course grades, quarter grades and assignment grades into the planner. It rechecks every 30 minutes while Chrome is open and sends new grades straight to your account, so your phone stays current. Private to you. See [docs/EXTENSION.md](docs/EXTENSION.md).
+- **Grades:** the *Rotation Planner Grades* Chrome extension reads your own Schoology grades page on your laptop and brings course grades, quarter grades and assignment grades into the planner. It rechecks every 30 minutes while Chrome is open and sends new grades straight to your account, so your phone stays current. Private to you. See [docs/EXTENSION.md](docs/EXTENSION.md).
 - **Sports and clubs:** recurring or one-time activities show up on the schedule.
 - **Unplanned closures:** mark a hurricane day and that day's letter is skipped, as the school does.
 - **Calendar export:** a `.ics` file for Google/Apple Calendar (assignments, letter days, events, and optionally every class meeting).

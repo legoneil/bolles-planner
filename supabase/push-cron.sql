@@ -1,4 +1,4 @@
--- Bolles Planner: send due reminders every 5 minutes.
+-- Rotation Planner: send due reminders every 5 minutes.
 -- Run this once, after push.sql and after deploying the `push` Edge Function.
 -- If your project's address isn't fknaqhlakprrbfhmzsqf, change it below.
 

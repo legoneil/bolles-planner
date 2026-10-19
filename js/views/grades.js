@@ -24,7 +24,7 @@ const tone = (g) => {
 
 const INSTALL = `
   <ol class="steps">
-    <li>On your laptop, install the <b>Bolles Planner Grades</b> extension for Chrome (<a href="https://github.com/legoneil/bolles-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">how to install</a>).</li>
+    <li>On your laptop, install the <b>Rotation Planner Grades</b> extension for Chrome (<a href="https://github.com/legoneil/rotation-planner/blob/claude/zealous-fermat-gt2k97/docs/EXTENSION.md" target="_blank" rel="noopener">how to install</a>).</li>
     <li>Open your Schoology grades page once while logged in.</li>
     <li>Open this planner in Chrome on that laptop. Your grades appear here, and on your phone after it syncs.</li>
   </ol>

@@ -1,4 +1,4 @@
-// Runs on the Bolles Planner website. Hands the grades the extension read
+// Runs on the Rotation Planner website. Hands the grades the extension read
 // from Schoology to the planner page, and keeps the private link key the
 // planner gives it so the extension can send new grades to the account
 // directly (see background.js).

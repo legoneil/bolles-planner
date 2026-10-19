@@ -1,7 +1,7 @@
 {
-  "name": "Bolles Planner",
+  "name": "Rotation Planner",
   "short_name": "Planner",
-  "description": "A student-made planner for Bolles letter days, classes, homework and tests.",
+  "description": "A student-made planner for rotating letter-day schedules, homework and tests. Built for Bolles students; not affiliated with the school.",
   "start_url": "./#/today",
   "scope": "./",
   "display": "standalone",

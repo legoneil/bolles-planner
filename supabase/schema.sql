@@ -1,4 +1,4 @@
--- Bolles Planner database setup.
+-- Rotation Planner database setup.
 -- Run this once in your Supabase project: SQL Editor -> New query -> paste -> Run.
 
 -- One row per student, holding their whole planner (classes, assignments,

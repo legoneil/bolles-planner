@@ -2,7 +2,9 @@
 
 Accounts let students sign in and see the same planner on their phone and laptop. The planner uses [Supabase](https://supabase.com) for this, and the free plan is enough. Setup takes about 20 minutes, including email (see *Before lots of students sign up*), and you only do it once.
 
-> **This project's live setup:** the site is at https://legoneil.github.io/bolles-planner/ (GitHub Pages from the `claude/zealous-fermat-gt2k97` branch; the repo is public because free GitHub Pages requires it). Supabase uses a publishable key and Gmail SMTP from `bollesplanner@gmail.com`.
+> **This project's live setup:** the site is at https://legoneil.github.io/rotation-planner/ (GitHub Pages from the `claude/zealous-fermat-gt2k97` branch; the repo is public because free GitHub Pages requires it). Supabase uses a publishable key and Gmail SMTP from `bollesplanner@gmail.com`.
+
+> **If the site's address changes** (for example after renaming the GitHub repo): update **Authentication → URL Configuration** (Site URL and Redirect URLs) to the new address. The Edge Functions only check the origin (`https://legoneil.github.io`), so they don't need changes. To forward the old address, put [`tools/old-address/index.html`](../tools/old-address/index.html) in a new repo with the old name and turn on GitHub Pages for it.
 
 Until it's set up, the app still works but saves everything on each device only.
 
@@ -31,7 +33,7 @@ This creates a `planners` table with one private row per student. Row-level secu
    - Leave **Confirm email** on. Students click a link in their email before their first sign-in, which stops people signing up with someone else's address.
    - Set the minimum password length to **8**.
 2. Open **Authentication → URL Configuration**.
-   - **Site URL:** the address of the live planner, e.g. `https://legoneil.github.io/bolles-planner/`
+   - **Site URL:** the address of the live planner, e.g. `https://legoneil.github.io/rotation-planner/`
    - **Redirect URLs:** add the same address, plus `http://localhost:4173/` for testing.
 
 ## 4. Connect the app
@@ -70,7 +72,7 @@ Grades aren't in Schoology's calendar feed. Grades would need Schoology's offici
 
 ## 6. Let grades update on their own
 
-The Bolles Planner Grades extension checks a student's Schoology grades every 30 minutes and can send them straight to their account, so their phone stays up to date even when the planner isn't open on the laptop.
+The Rotation Planner Grades extension checks a student's Schoology grades every 30 minutes and can send them straight to their account, so their phone stays up to date even when the planner isn't open on the laptop.
 
 1. In the SQL Editor, run everything in [`supabase/grades.sql`](../supabase/grades.sql).
 
@@ -110,7 +112,7 @@ Supabase's built-in email sender only delivers to people on the Supabase project
    | Setting | Value |
    | --- | --- |
    | Sender email | `bollesplanner@gmail.com` |
-   | Sender name | `Bolles Planner` |
+   | Sender name | `Rotation Planner` |
    | Host | `smtp.gmail.com` |
    | Port | `465` |
    | Username | `bollesplanner@gmail.com` |

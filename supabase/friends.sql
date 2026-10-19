@@ -1,4 +1,4 @@
--- Bolles Planner: friends and schedule comparing.
+-- Rotation Planner: friends and schedule comparing.
 -- Run this once after schema.sql: SQL Editor -> New query -> paste -> Run.
 -- It is safe to run again.
 --

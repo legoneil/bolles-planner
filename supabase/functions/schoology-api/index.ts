@@ -1,4 +1,4 @@
-// Supabase Edge Function: "Connect Schoology" for Bolles Planner.
+// Supabase Edge Function: "Connect Schoology" for Rotation Planner.
 //
 // Schoology's API uses OAuth 1.0a. The app's consumer key and secret live
 // only here (Edge Function secrets SCHOOLOGY_CONSUMER_KEY and

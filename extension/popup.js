@@ -1,4 +1,4 @@
-const PLANNER = 'https://legoneil.github.io/bolles-planner/#/grades';
+const PLANNER = 'https://legoneil.github.io/rotation-planner/#/grades';
 const GRADES = 'https://bolles.schoology.com/grades/grades';
 
 const $ = (id) => document.getElementById(id);
@@ -21,11 +21,11 @@ function show({ grades, status, layout, link }) {
       : link.sentAt
         ? `Sent to your planner account ${ago(link.sentAt)}.`
         : 'Linked to your planner account.'
-    : 'Open Bolles Planner once while signed in so new grades go to your account (and your phone).';
+    : 'Open Rotation Planner once while signed in so new grades go to your account (and your phone).';
   if (grades?.domain) $('open-grades').dataset.url = `https://${grades.domain}/grades/grades`;
   $('copy-debug').hidden = !layout;
   $('copy-debug').onclick = async () => {
-    await navigator.clipboard.writeText(`Bolles Planner extension debug\n${status?.message ?? ''}\n\n${layout}`);
+    await navigator.clipboard.writeText(`Rotation Planner extension debug\n${status?.message ?? ''}\n\n${layout}`);
     $('copy-debug').textContent = 'Copied. Paste it to Claude.';
   };
 }

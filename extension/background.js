@@ -1,7 +1,7 @@
 // Keeps grades fresh without opening Schoology. Every 30 minutes (while
 // Chrome is open) it loads your Schoology grades page using the Schoology
 // login already in this browser, reads it, and sends the result to your
-// Bolles Planner account, so your phone sees new grades too.
+// Rotation Planner account, so your phone sees new grades too.
 
 importScripts('common.js');
 

@@ -1,4 +1,4 @@
-// Supabase Edge Function: sends Bolles Planner reminders as push notifications.
+// Supabase Edge Function: sends Rotation Planner reminders as push notifications.
 //
 // - Every few minutes the scheduler (supabase/push-cron.sql) calls it with
 //   {action: "send"}; it sends every reminder that's due and marks it sent.
@@ -233,7 +233,7 @@ export async function handle(req: Request, env: Env): Promise<Response> {
       const res = await env.fetch(`${env.supabaseUrl}/rest/v1/push_subscriptions?select=endpoint,p256dh,auth`, { headers: asStudent });
       const devices = res.ok ? await res.json() : [];
       if (!devices.length) return json(404, { error: 'No devices have notifications turned on yet.' });
-      const r = await deliver(env, devices, { title: 'Notifications are on', body: 'This is what reminders from Bolles Planner look like.', url: '#/settings', tag: 'test' }, await vapidKeys(env));
+      const r = await deliver(env, devices, { title: 'Notifications are on', body: 'This is what reminders from Rotation Planner look like.', url: '#/settings', tag: 'test' }, await vapidKeys(env));
       return json(200, r);
     }
 

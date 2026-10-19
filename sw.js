@@ -1,6 +1,6 @@
 // Offline support: serve the app shell from cache when the network is down,
 // but always prefer the network so updates show up right away.
-const CACHE = 'bolles-planner-v7';
+const CACHE = 'bolles-planner-v8';
 const SHELL = [
   './',
   'index.html',
@@ -75,7 +75,7 @@ self.addEventListener('push', (e) => {
     msg = { body: e.data?.text() ?? '' };
   }
   e.waitUntil(
-    self.registration.showNotification(msg.title || 'Bolles Planner', {
+    self.registration.showNotification(msg.title || 'Rotation Planner', {
       body: msg.body || '',
       icon: 'icons/icon-192.png',
       badge: 'icons/badge.png',
