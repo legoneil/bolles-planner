@@ -1,7 +1,9 @@
-// Keeps grades fresh without opening Schoology. Every 30 minutes (while
-// Chrome is open) it loads your Schoology grades page using the Schoology
-// login already in this browser, reads it, and sends the result to your
-// Rotation Planner account, so your phone sees new grades too.
+// Keeps grades fresh without opening Schoology's grades page. Every 30
+// minutes (while the browser is open) it asks an open Schoology tab to
+// re-read your grades, since requests from a Schoology page carry your
+// login. With no Schoology tab open it tries directly, which works in
+// browsers that share the login with extensions. New grades go to your
+// planner account, so your phone sees them too.
 
 importScripts('common.js');
 
@@ -17,7 +19,6 @@ chrome.runtime.onStartup.addListener(setup);
 chrome.alarms.onAlarm.addListener((alarm) => alarm.name === 'refresh' && refresh());
 
 chrome.runtime.onMessage.addListener((msg) => {
-  if (msg?.type === 'schoology-visit') refresh({ maxAgeMs: REFRESH_MINUTES * 60_000, domain: msg.domain });
   if (msg?.type === 'refresh-now') refresh({ maxAgeMs: 0 });
 });
 
@@ -38,22 +39,45 @@ async function parse(html) {
   return chrome.runtime.sendMessage({ target: 'offscreen', type: 'parse', html });
 }
 
+// Ask an open Schoology tab to re-read the grades page. Tabs opened before
+// the extension was installed have no content script; skip those.
+async function refreshThroughTab() {
+  const tabs = await chrome.tabs.query({ url: 'https://*.schoology.com/*' });
+  for (const tab of tabs) {
+    try {
+      // Any answer (ok, logged out, error) means the tab handled it.
+      if (await chrome.tabs.sendMessage(tab.id, { type: 'refresh-grades' })) return true;
+    } catch {
+      // No content script in this tab.
+    }
+  }
+  return false;
+}
+
 let running = null;
-function refresh({ maxAgeMs = 60_000, domain } = {}) {
+function refresh({ maxAgeMs = 60_000 } = {}) {
   running ??= (async () => {
-    const { status, grades } = await chrome.storage.local.get(['status', 'grades']);
-    if (status?.at && Date.now() - status.at < maxAgeMs) return;
-    const host = domain ?? grades?.domain ?? DEFAULT_DOMAIN;
+    const { lastAttempt, grades } = await chrome.storage.local.get(['lastAttempt', 'grades']);
+    if (lastAttempt && Date.now() - lastAttempt < maxAgeMs) return;
+    await chrome.storage.local.set({ lastAttempt: Date.now() });
+    if (await refreshThroughTab()) return;
+
+    const host = grades?.domain ?? DEFAULT_DOMAIN;
     if (!/^[a-z0-9-]+\.schoology\.com$/.test(host)) return;
     const url = `https://${host}/grades/grades`;
     try {
-      const res = await fetch(url, { credentials: 'include' });
-      const loggedOut = () =>
-        chrome.storage.local.set({ status: { ok: false, loggedOut: true, at: Date.now(), message: 'Log in to Schoology in Chrome to keep your grades updating.' } });
-      if (/\/login/.test(new URL(res.url).pathname)) return loggedOut();
+      // Without the login, Schoology redirects to Microsoft sign-in; don't follow it.
+      const res = await fetch(url, { credentials: 'include', redirect: 'manual' });
+      if (res.type === 'opaqueredirect' || /\/login/.test(new URL(res.url).pathname)) {
+        await chrome.storage.local.set({ status: { ok: false, needsVisit: true, at: Date.now(), message: 'Open any Schoology page (logged in) to update your grades.' } });
+        return;
+      }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { data, layout, loginPage } = await parse(await res.text());
-      if (loginPage) return loggedOut();
+      if (loginPage) {
+        await chrome.storage.local.set({ status: { ok: false, needsVisit: true, at: Date.now(), message: 'Open any Schoology page (logged in) to update your grades.' } });
+        return;
+      }
       await chrome.storage.local.set(gradesResult(data, layout, url, host));
     } catch (e) {
       await chrome.storage.local.set({ status: { ok: false, at: Date.now(), message: `Couldn’t load your grades page (${e.message}).` } });

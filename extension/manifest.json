@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Rotation Planner Grades",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Brings your Schoology grades into Rotation Planner. Student-made; not affiliated with Bolles or Schoology.",
   "permissions": [
     "storage",

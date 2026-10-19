@@ -157,8 +157,14 @@ function gradesSyncText(ctx) {
   const ext = ctx.extension;
   if (!ext?.installed) return 'Extension not detected in this browser.';
   if (!ext.canLink) return `Extension connected (version ${esc(ext.version ?? '?')}). Update it to keep grades updating on their own.`;
-  const parts = [ext.status?.loggedOut ? '<b>Log in to Schoology in Chrome</b> to keep grades updating.' : 'Grades update every 30 minutes while Chrome is open.'];
-  if (ext.status && !ext.status.ok && !ext.status.loggedOut) parts.push(`Last check: ${esc(ext.status.message)}`);
+  const parts = [
+    ext.status?.loggedOut
+      ? '<b>Log in to Schoology</b> to keep grades updating.'
+      : ext.status?.needsVisit
+        ? '<b>Open any Schoology page</b> to update grades. This browser doesn’t let the extension check in the background, so keeping a Schoology tab open keeps them updating every 30 minutes.'
+        : 'Grades update every 30 minutes while your browser is open.',
+  ];
+  if (ext.status && !ext.status.ok && !ext.status.loggedOut && !ext.status.needsVisit) parts.push(`Last check: ${esc(ext.status.message)}`);
   if (ctx.account?.status === 'signed-in') {
     parts.push(ext.linkedUser === ctx.account.userId ? 'New grades go straight to your account, so your phone stays up to date.' : 'Linking the extension to your account…');
   }

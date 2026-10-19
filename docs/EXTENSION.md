@@ -24,7 +24,8 @@ School-managed laptops sometimes block step 3. If the Developer mode switch is g
 
 That's it. From then on:
 
-- **Grades update on their own** every 30 minutes while Chrome is open, without opening Schoology. Opening **Grades** in Schoology refreshes them right away, and so does **Check Schoology now** (in the planner's Settings, or the extension's toolbar button).
+- **Grades update on their own** every 30 minutes while your browser is open. Opening **Grades** in Schoology refreshes them right away; opening any other Schoology page refreshes them if they're more than 30 minutes old; so does **Check Schoology now** (in the planner's Settings, or the extension's toolbar button).
+- **Some browsers (like Dia, or Chrome with third-party cookies blocked) don't share your Schoology login with extensions.** Then the extension updates through an open Schoology tab instead: keep one open (any page) and grades still update every 30 minutes. With no Schoology tab open, the planner says "Open any Schoology page".
 - **New grades go straight to your account**, so your phone shows them even if the planner isn't open on the laptop.
 - If you get logged out of Schoology, the extension says so; log back in and it picks up again.
 
