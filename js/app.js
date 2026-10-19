@@ -313,8 +313,8 @@ const actions = {
   'push-enable': () => enablePush(),
   'push-disable': () => disablePush(),
   'push-test': async () => {
-    await sendTestPush();
-    if (!push.error) toast('Test sent. It should arrive in a few seconds.');
+    const r = await sendTestPush();
+    if (!push.error) toast(`Sent to ${r.sent} ${r.sent === 1 ? 'device' : 'devices'}. It should arrive in a few seconds.`);
   },
   'set-budget': (el) =>
     update((s) => {

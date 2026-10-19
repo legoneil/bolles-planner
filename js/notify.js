@@ -115,7 +115,14 @@ export const disablePush = () =>
     push.subscribed = false;
   });
 
-export const sendTestPush = () => run(() => callFunction({ action: 'test' }, { signedIn: true }));
+// Says plainly when nothing was delivered, and what the push service said.
+export const sendTestPush = () =>
+  run(async () => {
+    const out = await callFunction({ action: 'test' }, { signedIn: true });
+    if (out?.sent > 0) return out;
+    const why = (out?.results ?? []).map((r) => `${r.service}: ${r.status ?? 'error'}${r.detail ? ` (${r.detail})` : ''}`).join('; ');
+    throw new Error(`The test didn’t reach any device.${why ? ` ${why}` : ''}`);
+  });
 
 export function setNotifyPref(key, value) {
   update((s) => {

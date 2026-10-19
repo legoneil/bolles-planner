@@ -83,7 +83,7 @@ test('sendPush posts an encrypted body with the right headers', async () => {
     return new Response(null, { status: 201 });
   };
   const sub = { endpoint: 'https://web.push.apple.com/QGuQyavXut', p256dh: RFC.uaPublic, auth: RFC.auth };
-  const status = await sendPush(sub, { title: 'Hi' }, vapid, { subject: 'mailto:x@example.com', fetch: fakeFetch, topic: 'tests-2026-11-04' });
+  const { status } = await sendPush(sub, { title: 'Hi' }, vapid, { subject: 'mailto:x@example.com', fetch: fakeFetch, topic: 'tests-2026-11-04' });
   assert.equal(status, 201);
   assert.equal(seen.url, sub.endpoint);
   assert.equal(seen.init.headers['Content-Encoding'], 'aes128gcm');

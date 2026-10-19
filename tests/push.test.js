@@ -175,6 +175,26 @@ test('a test notification goes only to the signed-in student’s own devices', o
   delivered.length = 0;
   const r = await (await call('test', { token: 'tok-ana' })).json();
   assert.equal(r.sent, 2);
+  assert.deepEqual(r.results.map((x) => [x.service, x.status]).sort(), [['fcm.googleapis.com', 201], ['web.push.apple.com', 201]]);
   assert.ok(delivered.every((d) => !d.url.includes('ben')));
   assert.equal((await decrypt(delivered[0].init.body)).title, 'Notifications are on');
+});
+
+test('when a push service refuses, the test reports its reason', opts, async () => {
+  const cal = await sim.createUser('cal@example.com');
+  const refusing = 'https://fcm.googleapis.com/fcm/send/refuses';
+  await sim.rpc(cal, 'save_push_subscription', device(refusing));
+  const realFetch = env.fetch;
+  env.fetch = async (input, init) => (String(input) === refusing ? new Response('the key in the token does not match', { status: 403 }) : realFetch(input, init));
+  try {
+    const res = await handle(
+      new Request(`${URL_}/functions/v1/push`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer tok-cal', apikey: 'anon-key' }, body: JSON.stringify({ action: 'test' }) }),
+      { ...env, fetch: async (input, init) => (String(input) === `${URL_}/auth/v1/user` ? new Response(JSON.stringify({ id: cal })) : String(input).startsWith(`${URL_}/rest/v1/push_subscriptions`) ? new Response(JSON.stringify((await sim.query(cal, { table: 'push_subscriptions', action: 'select', columns: 'endpoint, p256dh, auth' })).data)) : env.fetch(input, init)) },
+    );
+    const out = await res.json();
+    assert.equal(out.sent, 0);
+    assert.deepEqual(out.results, [{ service: 'fcm.googleapis.com', status: 403, detail: 'the key in the token does not match' }]);
+  } finally {
+    env.fetch = realFetch;
+  }
 });

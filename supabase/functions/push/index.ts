@@ -112,8 +112,8 @@ export async function vapidAuthorization(endpoint: string, vapid: VapidKeys, sub
   return `vapid t=${header}.${claims}.${b64u.encode(sig)}, k=${vapid.publicKey}`;
 }
 
-// Send one message. Returns the push service's HTTP status
-// (201 = accepted; 404/410 = the subscription is gone).
+// Send one message. Returns the push service's HTTP status (201 = accepted;
+// 404/410 = the subscription is gone) and, if it refused, its explanation.
 export async function sendPush(
   sub: Subscription,
   message: unknown,
@@ -131,7 +131,8 @@ export async function sendPush(
   // A topic replaces an older undelivered message with the same topic.
   if (topic) headers.Topic = topic.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 32);
   const res = await f(sub.endpoint, { method: 'POST', headers, body });
-  return res.status;
+  const detail = res.ok ? '' : (await res.text().catch(() => '')).slice(0, 300);
+  return { status: res.status, detail };
 }
 
 // ---------------------------------------------------------------------------
@@ -168,21 +169,29 @@ async function vapidKeys(env: Env): Promise<VapidKeys> {
 }
 
 // Send to every device; forget devices the push service says are gone.
+// `results` says what each push service answered, for the test button.
 async function deliver(env: Env, devices: Subscription[], message: Record<string, unknown>, vapid: VapidKeys, topic?: string) {
   let sent = 0;
   let failed = 0;
+  const results: { service: string; status: number | null; detail?: string }[] = [];
   for (const device of devices) {
-    if (!PUSH_HOSTS.test(device.endpoint)) continue;
+    const service = new URL(device.endpoint).hostname;
+    if (!PUSH_HOSTS.test(device.endpoint)) {
+      results.push({ service, status: null, detail: 'not a known push service' });
+      continue;
+    }
     try {
-      const status = await sendPush(device, message, vapid, { subject: SUBJECT, fetch: env.fetch, topic });
-      if (status === 404 || status === 410) await rpc(env, 'drop_push_endpoint', { endpoint: device.endpoint });
-      if (status >= 200 && status < 300) sent++;
+      const res = await sendPush(device, message, vapid, { subject: SUBJECT, fetch: env.fetch, topic });
+      if (res.status === 404 || res.status === 410) await rpc(env, 'drop_push_endpoint', { endpoint: device.endpoint });
+      if (res.status >= 200 && res.status < 300) sent++;
       else failed++;
-    } catch {
+      results.push({ service, status: res.status, ...(res.detail ? { detail: res.detail } : {}) });
+    } catch (e) {
       failed++;
+      results.push({ service, status: null, detail: e instanceof Error ? e.message : String(e) });
     }
   }
-  return { sent, failed };
+  return { sent, failed, results };
 }
 
 // ---------------------------------------------------------------------------
