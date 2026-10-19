@@ -206,7 +206,10 @@ function notificationsCard(ctx) {
       <div class="btn-row">
         <button class="btn secondary small" data-action="push-test" ${push.busy ? 'disabled' : ''}>Send a test</button>
         <button class="btn secondary small" data-action="push-disable" ${push.busy ? 'disabled' : ''}>Turn off on this device</button>
-      </div>`;
+      </div>
+      <p class="muted small" style="margin-top:10px">Test not showing up? ${/Mac/.test(navigator.platform) && !/iPhone|iPad/.test(navigator.userAgent)
+        ? 'On a Mac, open System Settings → Notifications, find your browser, and turn on Allow notifications. Also check Focus / Do Not Disturb.'
+        : 'Check that notifications are allowed for your browser in your device’s settings, and that Do Not Disturb is off.'}</p>`;
   } else {
     device = `<p class="muted">Get reminders on this ${/iPhone|Android/.test(navigator.userAgent) ? 'phone' : 'device'}, even when the planner is closed.</p>
       <button class="btn" data-action="push-enable" ${push.busy ? 'disabled' : ''}>${push.busy ? 'Turning on…' : 'Turn on notifications'}</button>`;
