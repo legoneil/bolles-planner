@@ -137,6 +137,18 @@ export function toggleDone(id) {
   if (a) saveAssignment({ ...a, done: !a.done });
 }
 
+// Mark several assignments done at once (clearing an overdue backlog).
+export function markDone(ids) {
+  const want = new Set(ids);
+  update((s) => {
+    for (const a of s.assignments) {
+      if (!want.has(a.id)) continue;
+      if (a.source === 'schoology') s.schoology.overrides[a.id] = { ...s.schoology.overrides[a.id], done: true };
+      else a.done = true;
+    }
+  });
+}
+
 export function deleteAssignment(id) {
   update((s) => {
     const a = s.assignments.find((x) => x.id === id);

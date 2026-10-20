@@ -35,7 +35,7 @@ test('free periods and study halls count as study time; evenings lose activities
 
 test('homework lands on the day before it is due, in a free period when it fits', () => {
   const plan = planWork(ctx([a('hw', 'homework', '2026-11-04'), a('read', 'reading', '2026-11-03', { minutes: 60 })]));
-  assert.deepEqual(sessionsOn(plan, '2026-11-03'), [['hw', 30, 'free']]);
+  assert.deepEqual(sessionsOn(plan, '2026-11-03'), [['hw', 20, 'free']]);
   assert.deepEqual(sessionsOn(plan, '2026-11-02'), [['read', 60, 'free']]);
   assert.equal(plan.unscheduled.length, 0);
 });
@@ -43,29 +43,30 @@ test('homework lands on the day before it is due, in a free period when it fits'
 test('a test is spread over the days before it, ending the night before', () => {
   const plan = planWork(ctx([a('bio', 'test', '2026-11-05')])); // Thursday test, planned from Monday
   const dates = [...plan.days.keys()].filter((d) => plan.days.get(d).sessions.length).sort();
-  assert.deepEqual(dates, ['2026-11-02', '2026-11-03', '2026-11-04']);
+  assert.deepEqual(dates, ['2026-11-03', '2026-11-04']);
   const total = dates.reduce((t, d) => t + plan.days.get(d).used, 0);
   assert.equal(total, estimate({ type: 'test' }));
   const last = plan.days.get('2026-11-04').sessions[0];
-  assert.equal(last.part, 3);
-  assert.equal(last.of, 3);
+  assert.equal(last.part, 2);
+  assert.equal(last.of, 2);
 });
 
 test('time already studied comes off the plan, and done sessions stay listed today', () => {
   const plan = planWork(ctx([a('bio', 'test', '2026-11-05', { sessions: { '2026-11-02': 45 } })]));
   const planned = [...plan.days.values()].reduce((t, d) => t + d.sessions.filter((s) => !s.done).reduce((u, s) => u + s.minutes, 0), 0);
-  assert.equal(planned, 120 - 45);
+  assert.equal(planned, 90 - 45);
   assert.deepEqual(sessionsOn(plan, '2026-11-02').filter(([, , slot]) => slot === 'evening'), [['bio', 45, 'evening']]);
   assert.ok(plan.days.get('2026-11-02').sessions.some((s) => s.done && s.minutes === 45));
 });
 
-test('overdue work goes on today and a packed night is flagged as over', () => {
+test('overdue work is counted but not planned, and a packed night is flagged as over', () => {
   const settings = { studyBudget: 60 };
   const plan = planWork(ctx([a('late', 'homework', '2026-10-30'), a('big', 'essay', '2026-11-03', { minutes: 180 })], { settings }));
   const today = plan.days.get('2026-11-02');
-  assert.ok(today.sessions.some((s) => s.assignment.id === 'late' && s.overdue));
+  assert.equal(plan.overdue, 1);
+  assert.ok(!today.sessions.some((s) => s.assignment.id === 'late'));
   assert.ok(today.over > 0, 'the night is over budget');
-  assert.equal(today.used, 210);
+  assert.equal(today.used, 180);
 });
 
 test('due today is not planned, done work is skipped, and minutes format nicely', () => {
@@ -82,14 +83,20 @@ test('after studying today, the rest of a test goes on later days, not today aga
   const today = plan.days.get('2026-11-02').sessions.filter((s) => s.assignment.id === 'bio');
   assert.deepEqual(today.map((s) => [s.minutes, s.done]), [[60, true]]);
   const later = [...plan.days.values()].filter((d) => d.date > '2026-11-02').flatMap((d) => d.sessions).reduce((t, s) => t + s.minutes, 0);
-  assert.equal(later, 120 - 60);
+  assert.equal(later, 90 - 60);
 });
 
-test('old overdue work is not piled onto today', () => {
+test('overdue work is not piled onto today', () => {
   const old = Array.from({ length: 40 }, (_, i) => a(`hw${i}`, 'homework', '2026-09-1' + (i % 10)));
   const recent = a('late', 'homework', '2026-10-30');
-  const plan = planWork(ctx([...old, recent]));
-  assert.deepEqual(plan.days.get('2026-11-02').sessions.map((s) => s.assignment.id), ['late']);
+  const plan = planWork(ctx([...old, recent, a('hw', 'homework', '2026-11-03')]));
+  assert.deepEqual(plan.days.get('2026-11-02').sessions.map((s) => s.assignment.id), ['hw']);
+  assert.equal(plan.overdue, 41);
+});
+
+test('calendar events ("other") are only planned when given a time', () => {
+  const plan = planWork(ctx([a('assembly', 'other', '2026-11-03'), a('permission slip', 'other', '2026-11-03', { minutes: 15 })]));
+  assert.deepEqual(sessionsOn(plan, '2026-11-02').map(([id]) => id), ['permission slip']);
 });
 
 test('homework only goes on a day that has one slot big enough for it', () => {

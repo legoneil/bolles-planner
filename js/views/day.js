@@ -116,10 +116,14 @@ function renderUpcoming(ctx) {
   const soon = ctx.assignments
     .filter((a) => !a.done && (a.type === 'test' || a.type === 'quiz' || a.type === 'project') && a.dueDate > ctx.today && a.dueDate <= horizon)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
-  const overdue = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today);
+  // Most recent first, and only a few: old Schoology items pile up here.
+  const overdue = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today).sort((a, b) => b.dueDate.localeCompare(a.dueDate));
+  const shown = overdue.slice(0, 3);
   return `
-    ${overdue.length ? `<section class="card"><h2>Overdue <span class="count">${overdue.length}</span></h2>
-      <ul class="assignments">${overdue.map((a) => assignmentItem(a, ctx.classesById, { showDate: true, today: ctx.today })).join('')}</ul></section>` : ''}
+    ${overdue.length ? `<section class="card"><div class="card-head"><h2>Overdue <span class="count">${overdue.length}</span></h2>
+        <button class="link-btn small" data-action="clear-overdue">Mark all done</button></div>
+      <ul class="assignments">${shown.map((a) => assignmentItem(a, ctx.classesById, { showDate: true, today: ctx.today })).join('')}</ul>
+      ${overdue.length > shown.length ? `<button class="link-btn small" data-nav="#/todo">See all ${overdue.length}</button>` : ''}</section>` : ''}
     <section class="card">
       <h2>Tests, quizzes and projects · next 2 weeks</h2>
       ${soon.length ? `<ul class="assignments">${soon

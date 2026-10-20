@@ -49,6 +49,7 @@ export function parseDateValue(value, params = {}) {
 }
 
 const TYPE_PATTERNS = [
+  ['homework', /\b(corrections?|retakes?)\b/i],
   ['quiz', /\bquiz(zes)?\b/i],
   ['test', /\b(tests?|exams?|midterms?|final exams?|assessments?|summatives?)\b/i],
   ['project', /\b(projects?|presentations?)\b/i],
@@ -92,7 +93,8 @@ export function schoologyToAssignments(events, classes) {
       title: e.summary.trim(),
       notes: (e.description ?? '').trim(),
       url: e.url ?? extractUrl(e.description),
-      type: guessType(e.summary),
+      // Calendar events (not assignments) link to /event/ in Schoology.
+      type: /\/event\//.test(e.url ?? extractUrl(e.description) ?? '') ? 'other' : guessType(e.summary),
       classId: guessClass(e, classes),
       dueDate: e.dtstart.date,
       dueTime: e.dtstart.time,

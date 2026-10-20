@@ -48,6 +48,7 @@ import {
   deleteAssignment,
   freshState,
   getState,
+  markDone,
   mergeSchoology,
   replaceState,
   resetState,
@@ -297,6 +298,13 @@ function importICS(text) {
 
 const actions = {
   'toggle-done': (el) => toggleDone(el.dataset.id),
+  'clear-overdue': () => {
+    const ctx = makeContext(getState());
+    const ids = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today).map((a) => a.id);
+    if (!ids.length || !confirm(`Mark all ${ids.length} overdue ${ids.length === 1 ? 'item' : 'items'} as done?`)) return;
+    markDone(ids);
+    toast(`Marked ${ids.length} done`);
+  },
   'edit-assignment': (el) => openAssignment(el.dataset.id),
   'delete-assignment': (el) => {
     deleteAssignment(el.dataset.id);

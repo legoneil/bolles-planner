@@ -40,12 +40,18 @@ const FEED = [
   'DTSTART:20261023T035900Z',
   'SUMMARY:Reading Quiz',
   'END:VEVENT',
+  'BEGIN:VEVENT',
+  'UID:event-125@bolles.schoology.com',
+  'DTSTART;VALUE=DATE:20261024',
+  'SUMMARY:Homecoming pep rally',
+  'URL:https://bolles.schoology.com/event/125',
+  'END:VEVENT',
   'END:VCALENDAR',
 ].join('\r\n');
 
 test('parses a Schoology feed', () => {
   const events = parseICS(FEED);
-  assert.equal(events.length, 2);
+  assert.equal(events.length, 3);
   assert.equal(events[0].summary, 'Chapter 5 Test');
   assert.equal(events[0].description, 'Biology - Hicks\nStudy sections 5.1-5.4, plus the lab notes');
   assert.deepEqual(events[0].dtstart, { date: '2026-10-22', time: null });
@@ -58,6 +64,7 @@ test('parses a Schoology feed', () => {
   assert.equal(items[0].url, 'https://bolles.schoology.com/assignment/123');
   assert.equal(items[1].type, 'quiz');
   assert.equal(items[1].classId, null);
+  assert.equal(items[2].type, 'other', 'calendar events are not homework');
 });
 
 test('guesses assignment types', () => {
@@ -66,6 +73,8 @@ test('guesses assignment types', () => {
   assert.equal(guessType('Final draft of essay'), 'essay');
   assert.equal(guessType('Science fair project'), 'project');
   assert.equal(guessType('Worksheet 4'), 'homework');
+  assert.equal(guessType('Unit 3 test corrections'), 'homework');
+  assert.equal(guessType('Quiz retake'), 'homework');
 });
 
 test('export round-trips through the parser', () => {

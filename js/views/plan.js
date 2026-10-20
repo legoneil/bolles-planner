@@ -6,6 +6,13 @@ import { BUDGET_CHOICES, DEFAULT_BUDGET, formatMinutes, planWork } from '../stud
 import { className, esc, statusLabel, typeLabel } from '../ui.js';
 
 const budgetOf = (ctx) => ctx.state?.settings?.studyBudget ?? DEFAULT_BUDGET;
+const TONIGHT_MAX = 5;
+
+// Overdue work isn't planned (it's often already done in Schoology).
+const overdueNote = (plan) =>
+  plan.overdue
+    ? `<p class="muted small plan-note">${plan.overdue} overdue ${plan.overdue === 1 ? 'item isn’t' : 'items aren’t'} in the plan. <button class="link-btn" data-nav="#/todo">Tick off what’s done</button></p>`
+    : '';
 
 export function renderPlan(ctx) {
   const plan = planWork(ctx);
@@ -23,7 +30,7 @@ export function renderPlan(ctx) {
     </header>`;
 
   if (!anything) {
-    return `${head}<div class="empty"><p class="empty-title">Nothing to plan yet</p>
+    return `${head}${overdueNote(plan)}<div class="empty"><p class="empty-title">Nothing to plan yet</p>
       <p>Add homework, tests and projects with a due date, and the planner will spread the work over your free periods and evenings.</p></div>`;
   }
 
@@ -34,7 +41,7 @@ export function renderPlan(ctx) {
   const skipped = plan.unscheduled.length
     ? `<p class="muted small">Not enough days left to spread: ${plan.unscheduled.map((a) => esc(a.title)).join(', ')}.</p>`
     : '';
-  return `${head}${days}${laterHtml}${skipped}
+  return `${head}${overdueNote(plan)}${days}${laterHtml}${skipped}
     <p class="muted small">Study sessions are suggestions based on how long each thing usually takes. Change the time on any assignment, or your nightly study time in Settings, and the plan updates.</p>`;
 }
 
@@ -75,7 +82,7 @@ export function sessionRow(s, date, ctx) {
   const what = s.study ? `Study${s.of > 1 ? ` ${s.part} of ${s.of}` : ''}` : typeLabel(a.type);
   // Always relative to today, whichever day's card this is.
   const dueDay = relativeDay(a.dueDate, ctx.today);
-  const due = a.dueDate < ctx.today ? 'overdue' : `due ${dueDay === 'Today' || dueDay === 'Tomorrow' ? dueDay.toLowerCase() : dueDay}`;
+  const due = `due ${dueDay === 'Today' || dueDay === 'Tomorrow' ? dueDay.toLowerCase() : dueDay}`;
   const canLog = date <= ctx.today;
   const check = s.study
     ? `<button class="check ${canLog ? '' : 'is-future'}" data-action="log-session" data-id="${esc(a.id)}" data-date="${date}" data-minutes="${s.minutes}"
@@ -83,12 +90,12 @@ export function sessionRow(s, date, ctx) {
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10.5l3 3 7-7" /></svg></button>`
     : `<button class="check ${canLog ? '' : 'is-future'}" data-action="toggle-done" data-id="${esc(a.id)}" aria-pressed="${a.done}" aria-label="Mark done" ${canLog ? '' : 'disabled'}>
         <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 10.5l3 3 7-7" /></svg></button>`;
-  return `<li class="session ${s.done ? 'done' : ''} ${s.overdue ? 'overdue' : ''}" style="--c:${esc(cls?.color ?? 'var(--muted)')}">
+  return `<li class="session ${s.done ? 'done' : ''}" style="--c:${esc(cls?.color ?? 'var(--muted)')}">
     ${check}
     <button class="session-body" data-action="edit-assignment" data-id="${esc(a.id)}">
       <span class="session-title">${esc(a.title)}</span>
       <span class="session-meta"><span class="type-tag ${s.study ? 'type-test' : ''}">${esc(what)}</span>
-        <span>${esc(className(cls))}</span><span class="${s.overdue ? 'overdue-text' : ''}">${esc(due)}</span></span>
+        <span>${esc(className(cls))}</span><span>${esc(due)}</span></span>
     </button>
     <span class="session-when"><b>${esc(formatMinutes(s.minutes))}</b><small>${when}</small></span>
   </li>`;
@@ -98,7 +105,7 @@ export function sessionRow(s, date, ctx) {
 export function tonightCard(ctx) {
   const plan = planWork(ctx);
   const anything = [...plan.days.values()].some((d) => d.sessions.length);
-  if (!anything) return '';
+  if (!anything) return plan.overdue ? `<section class="card tonight-card"><h2>Today’s plan</h2>${overdueNote(plan)}</section>` : '';
   const today = plan.days.get(ctx.today);
   const sessions = today?.sessions ?? [];
   const open = sessions.filter((s) => !s.done);
@@ -107,7 +114,11 @@ export function tonightCard(ctx) {
   if (!sessions.length) {
     body = `<p class="muted">Nothing planned for today.${tomorrow?.sessions.length ? ` Tomorrow: about ${esc(formatMinutes(tomorrow.used))}.` : ''}</p>`;
   } else {
-    body = `<ul class="sessions compact">${sessions.map((s) => sessionRow(s, ctx.today, ctx)).join('')}</ul>`;
+    // Keep it short: what's left first, the rest is on the Plan page.
+    const shown = [...open, ...sessions.filter((s) => s.done)].slice(0, TONIGHT_MAX);
+    const more = sessions.length - shown.length;
+    body = `<ul class="sessions compact">${shown.map((s) => sessionRow(s, ctx.today, ctx)).join('')}</ul>
+      ${more ? `<button class="link-btn small" data-nav="#/plan">${more} more</button>` : ''}`;
   }
   const total = open.reduce((t, s) => t + s.minutes, 0);
   const over = today?.over > 0;
@@ -117,7 +128,7 @@ export function tonightCard(ctx) {
       <button class="btn small secondary" data-nav="#/plan">Full plan</button>
     </div>
     ${over ? `<p class="warning">That’s more than fits around your day. Start early, or move something.</p>` : ''}
-    ${body}
+    ${body}${overdueNote(plan)}
   </section>`;
 }
 

@@ -57,10 +57,11 @@ test('done work, past times and turned-off kinds are left out', () => {
 });
 
 test('tonight’s plan lists evening study sessions with times', () => {
-  const r = byKey(buildReminders(ctxAt([a('Unit 4 test', 'test', '2026-11-05', 'c1'), a('Chapter 6 test', 'test', '2026-11-05', 'c3')])));
+  // Long enough that tonight's sessions don't fit in a free period.
+  const r = byKey(buildReminders(ctxAt([a('Unit 4 test', 'test', '2026-11-04', 'c1', { minutes: 150 }), a('Chapter 6 test', 'test', '2026-11-04', 'c3', { minutes: 150 })])));
   const plan = r['plan-2026-11-02'];
   assert.match(plan.title, /^Tonight: about \d/);
-  assert.match(plan.body, /Study for Unit 4 test \(\d+ min\)/);
+  assert.match(plan.body, /Study for Unit 4 test \(1 h 15 min\)/);
   assert.equal(plan.url, '#/plan');
   assert.equal(plan.sendAt.getTime(), new Date(2026, 10, 2, 16, 0).getTime());
 });

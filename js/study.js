@@ -9,15 +9,17 @@ import { addDays, minutes, nowMinutes, weekday } from './dates.js';
 import { getDay } from './schedule.js';
 
 // How much time each kind of work takes by default, and how it's spread.
+// "Other" (Schoology calendar events, reminders) isn't planned unless the
+// student gives it a time.
 export const WORK = {
-  homework: { minutes: 30 },
-  reading: { minutes: 30 },
+  homework: { minutes: 20 },
+  reading: { minutes: 20 },
   lab: { minutes: 30 },
-  other: { minutes: 30 },
-  quiz: { minutes: 45, days: 2, session: 30 },
-  test: { minutes: 120, days: 4, session: 45 },
-  essay: { minutes: 180, days: 6, session: 60 },
-  project: { minutes: 240, days: 7, session: 60 },
+  other: { minutes: 0 },
+  quiz: { minutes: 30, days: 2, session: 30 },
+  test: { minutes: 90, days: 3, session: 45 },
+  essay: { minutes: 120, days: 5, session: 45 },
+  project: { minutes: 180, days: 6, session: 60 },
 };
 
 export const TIME_CHOICES = [15, 30, 45, 60, 90, 120, 180, 240, 300];
@@ -29,7 +31,6 @@ const WEEKEND_STARTS = minutes('09:00');
 const BREAK_MINUTES = 60; // dinner and a breather
 const MIN_SESSION = 15;
 const HORIZON_DAYS = 21;
-const OVERDUE_DAYS = 7; // older unfinished work isn't piled onto today
 
 const round5 = (n) => Math.max(5, Math.round(n / 5) * 5);
 
@@ -87,16 +88,17 @@ function spread(days, count) {
   return [...new Set(out)];
 }
 
-// The plan from `ctx.today` for the next few weeks.
-// Returns { days: Map(date -> { capacity, sessions, used, over }), unscheduled }
+// The plan from `ctx.today` for the next few weeks. Overdue work isn't
+// planned (it's often done already, e.g. finished in Schoology); it's counted
+// so the plan can point to it.
+// Returns { days: Map(date -> { capacity, sessions, used, over }), unscheduled, overdue }
 export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEFAULT_BUDGET } = {}) {
   const today = ctx.today;
   const nowMin = ctx.now ? nowMinutes(ctx.now) : null;
-  const open = ctx.assignments.filter(
-    (a) => !a.done && a.dueDate && a.dueDate <= addDays(today, HORIZON_DAYS) && a.dueDate >= addDays(today, -OVERDUE_DAYS),
-  );
-  const work = open
-    .filter((a) => a.dueDate > today || a.dueDate < today) // due today: it's due in class, too late to plan
+  const overdue = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < today).length;
+  // Due today is due in class: too late to plan.
+  const work = ctx.assignments
+    .filter((a) => !a.done && a.dueDate && a.dueDate > today && a.dueDate <= addDays(today, HORIZON_DAYS))
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || Number(isBigWork(b)) - Number(isBigWork(a)) || a.title.localeCompare(b.title));
 
   const days = new Map();
@@ -124,11 +126,7 @@ export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEF
   for (const a of work) {
     const remaining = Math.max(0, estimate(a) - logged(a));
     if (!remaining) continue;
-    const last = a.dueDate < today ? today : addDays(a.dueDate, -1);
-    if (a.dueDate < today) {
-      place(dayOf(today), a, remaining, { overdue: true });
-      continue;
-    }
+    const last = addDays(a.dueDate, -1);
     const kind = workKind(a);
     if (!kind.days) {
       // Latest day with room, back to today; otherwise squeeze it into the last evening.
@@ -162,7 +160,7 @@ export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEF
   }
 
   for (const d of days.values()) d.sessions.sort(bySlot);
-  return { days, unscheduled };
+  return { days, unscheduled, overdue };
 
   // Fill free periods first (whole sessions only), then the evening; whatever
   // doesn't fit still goes on the evening and is counted as over.
