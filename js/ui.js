@@ -35,6 +35,16 @@ export function statusLabel(day) {
   }
 }
 
+// What Schoology's gradebook says: graded (with the score), missing or excused.
+function gradeTag(a) {
+  const g = a.grade;
+  if (!g) return '';
+  if (g.state === 'missing') return '<span class="grade-tag is-missing">Missing in Schoology</span>';
+  if (g.state === 'excused') return '<span class="grade-tag">Excused</span>';
+  const score = g.max ? `${g.score}/${g.max}` : g.percent !== null ? `${g.percent}%` : g.display;
+  return `<span class="grade-tag is-graded">Graded${score ? ` ${esc(score)}` : ''}</span>`;
+}
+
 export function assignmentItem(a, classesById, { showDate = false, today } = {}) {
   const cls = classesById.get(a.classId);
   const color = cls?.color ?? 'var(--muted)';
@@ -51,7 +61,8 @@ export function assignmentItem(a, classesById, { showDate = false, today } = {})
           <span class="type-tag ${isTest ? 'type-test' : ''}">${esc(typeLabel(a.type))}</span>
           <span>${esc(className(cls))}</span>
           ${showDate ? `<span class="${overdue ? 'overdue-text' : ''}">${esc(relativeDay(a.dueDate, today))}</span>` : ''}
-          ${a.source === 'schoology' ? '<span class="src">Schoology</span>' : ''}
+          ${gradeTag(a)}
+          ${a.source === 'schoology' && !a.grade ? '<span class="src">Schoology</span>' : ''}
         </span>
       </button>
     </li>`;

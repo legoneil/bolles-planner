@@ -53,15 +53,15 @@ import {
   replaceState,
   resetState,
   saveAssignment,
+  setDone,
   subscribe,
-  toggleDone,
   uid,
   update,
 } from './store.js';
 import { clearGrades, extension, initGrades, onExtensionChange, refreshGradesNow } from './grades.js';
 import { clearReminders, disablePush, enablePush, initPush, onPushChange, push, sendTestPush, setNotifyPref } from './notify.js';
 import { renderDay } from './views/day.js';
-import { renderGrades } from './views/grades.js';
+import { renderGrades, updateNeed } from './views/grades.js';
 import { renderFriendCompare, renderFriends, renderInvite } from './views/friends.js';
 import { clearPendingInvite, inviteHash, inviteLink, parseInvite, pendingInvite, savePendingInvite } from './invite.js';
 import { esc } from './ui.js';
@@ -92,18 +92,20 @@ function route() {
   return { name, arg };
 }
 
-const TYPED = 'form[data-form] input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]), form[data-form] textarea';
+const TYPED = 'form[data-form] input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]), form[data-form] textarea, form[data-form] select';
+// A select's "default value" is the option the page rendered as selected.
+const initial = (el) => (el.tagName === 'SELECT' ? ([...el.options].find((o) => o.defaultSelected) ?? el.options[0])?.value : el.defaultValue);
 
 function typedDrafts() {
   return [...$view.querySelectorAll(TYPED)]
-    .filter((el) => el.name && el.value !== el.defaultValue)
+    .filter((el) => el.name && el.value !== initial(el))
     .map((el) => ({ form: el.form.dataset.form, name: el.name, value: el.value, focused: el === document.activeElement, caret: el.selectionStart }));
 }
 
 function restoreDrafts(drafts) {
   for (const d of drafts) {
     const el = $view.querySelector(`form[data-form="${CSS.escape(d.form)}"] [name="${CSS.escape(d.name)}"]`);
-    if (!el || el.value !== el.defaultValue) continue;
+    if (!el || el.value !== initial(el)) continue;
     el.value = d.value;
     if (d.focused) {
       el.focus();
@@ -184,10 +186,13 @@ function render() {
   const sameRoute = ui.lastRoute === location.hash;
   // Keep what's been typed into forms when the page redraws (sync, timers).
   const drafts = sameRoute ? typedDrafts() : [];
+  const opened = sameRoute ? [...$view.querySelectorAll('details[open][data-key]')].map((d) => d.dataset.key) : [];
   // Fade in only when arriving on a page, not on every redraw.
   $view.classList.toggle('enter', !sameRoute);
   $view.innerHTML = html;
   restoreDrafts(drafts);
+  for (const key of opened) $view.querySelector(`details[data-key="${CSS.escape(key)}"]`)?.setAttribute('open', '');
+  for (const form of $view.querySelectorAll('form[data-form^="need-"]')) updateNeed(form, makeContext(state));
   if (sameRoute) window.scrollTo(0, scroll);
   ui.lastRoute = location.hash;
 }
@@ -297,7 +302,11 @@ function importICS(text) {
 // Actions
 
 const actions = {
-  'toggle-done': (el) => toggleDone(el.dataset.id),
+  // Done as shown, which includes work graded in Schoology.
+  'toggle-done': (el) => {
+    const a = makeContext(getState()).assignments.find((x) => x.id === el.dataset.id);
+    if (a) setDone(a.id, !a.done);
+  },
   'clear-overdue': () => {
     const ctx = makeContext(getState());
     const ids = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today).map((a) => a.id);
@@ -732,6 +741,7 @@ document.addEventListener('change', async (e) => {
 
 document.addEventListener('input', (e) => {
   const form = e.target.closest('form');
+  if (form?.dataset.form?.startsWith('need-')) updateNeed(form, makeContext(getState()));
   if (form?.dataset.form === 'class' && e.target.name === 'teacher') updateLunchHint(form);
   rememberOnboarding(e.target);
 });

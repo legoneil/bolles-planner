@@ -1316,7 +1316,7 @@ input:not([type='checkbox'], [type='radio']):focus,
 select:focus,
 textarea:focus {
   outline: none;
-  background: var(--surface);
+  background-color: var(--surface);
   border-color: var(--accent);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
 }
@@ -2896,4 +2896,89 @@ input.time-input:disabled {
 
 .invite-banner p {
   margin-bottom: 10px;
+}
+
+/* ---------- Grades from Schoology on to-dos ---------- */
+
+.grade-tag {
+  font-weight: 650;
+  padding: 1px 7px;
+  border-radius: 6px;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.grade-tag.is-graded {
+  color: var(--ok);
+  background: var(--ok-soft);
+}
+
+.grade-tag.is-missing {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.todo-note {
+  margin: 0 4px 10px;
+}
+
+/* ---------- What do I need? ---------- */
+
+.need {
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.need-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.need-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--text-2);
+}
+
+.need-fields label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.need-fields select,
+.need-fields input {
+  width: auto;
+  min-height: 38px;
+  font: inherit;
+  color: var(--text);
+  background-color: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 6px 10px;
+  max-width: 100%;
+}
+
+.need-fields select {
+  padding-right: 32px;
+  background-position: right 8px center;
+}
+
+.need-fields input {
+  width: 4.5em;
+}
+
+.need-result {
+  margin-top: 12px;
+  font-size: 0.92rem;
+}
+
+.need-result small {
+  display: inline-block;
+  margin-top: 4px;
 }

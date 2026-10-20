@@ -1,5 +1,5 @@
 import { addDays, startOfWeek } from '../dates.js';
-import { RECENT_OVERDUE_DAYS } from '../planner.js';
+import { isMissing, RECENT_OVERDUE_DAYS } from '../planner.js';
 import { assignmentItem, className, emptyState, esc } from '../ui.js';
 
 export function renderTodo(ctx, filter = { classId: 'all', show: 'open', older: false }) {
@@ -12,10 +12,12 @@ export function renderTodo(ctx, filter = { classId: 'all', show: 'open', older: 
   const done = items.filter((a) => a.done).sort((a, b) => byDue(b, a));
   const endOfWeek = addDays(startOfWeek(t), 6);
   const since = addDays(t, -RECENT_OVERDUE_DAYS);
-  // Older overdue work is usually done in Schoology already: folded away.
-  const older = open.filter((a) => a.dueDate && a.dueDate < since).reverse();
+  // Older overdue work is usually done in Schoology already: folded away,
+  // unless Schoology says it's missing.
+  const isOld = (a) => a.dueDate && a.dueDate < since && !isMissing(a);
+  const older = open.filter(isOld).reverse();
   const groups = [
-    ['Overdue', open.filter((a) => a.dueDate && a.dueDate >= since && a.dueDate < t).reverse()],
+    ['Overdue', open.filter((a) => a.dueDate && a.dueDate < t && !isOld(a)).reverse()],
     ['Today', open.filter((a) => a.dueDate === t)],
     ['Tomorrow', open.filter((a) => a.dueDate === addDays(t, 1))],
     ['Later this week', open.filter((a) => a.dueDate > addDays(t, 1) && a.dueDate <= endOfWeek)],
@@ -52,7 +54,7 @@ export function renderTodo(ctx, filter = { classId: 'all', show: 'open', older: 
   const body =
     filter.show === 'done'
       ? done.length
-        ? `<section class="card">${list(done)}</section>`
+        ? `${ctx.state.grades?.courses?.length ? '<p class="muted small todo-note">Work that’s graded in Schoology is ticked off for you.</p>' : ''}<section class="card">${list(done)}</section>`
         : emptyState('Nothing completed yet')
       : open.length
         ? groups

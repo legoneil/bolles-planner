@@ -1,4 +1,5 @@
 import { cleanCourseText, matchClass } from '../grades.js';
+import { GOAL_LETTERS, gradeModel, letterCutoff, letterFor, scoreNeeded } from '../gradework.js';
 import { className, esc } from '../ui.js';
 
 const ago = (t, now) => {
@@ -48,7 +49,7 @@ export function renderGrades(ctx, extension) {
       const cls = matchClass(c, ctx.profile.classes);
       const items = c.items.filter((i) => i.display || i.percent !== null || i.status);
       return `<li class="course" style="--c:${esc(cls?.color ?? 'var(--line)')}">
-        <details>
+        <details data-key="course-${esc(c.id)}">
           <summary>
             <span class="course-main"><b>${esc(cls ? className(cls) : cleanCourseText(c.title))}</b>
               <small>${esc(cls ? `${cleanCourseText(c.title)}${c.section ? ` · ${cleanCourseText(c.section)}` : ''}` : cleanCourseText(c.section))}</small></span>
@@ -64,6 +65,7 @@ export function renderGrades(ctx, extension) {
                 )
                 .join('')}</ul>`
             : '<p class="muted small">No graded assignments yet.</p>'}
+          ${needCalc(c)}
         </details>
       </li>`;
     })
@@ -72,6 +74,68 @@ export function renderGrades(ctx, extension) {
     <p class="muted small grades-meta">From Schoology · updated ${esc(ago(g.readAt, now))}${stale ? ' · open Schoology on your laptop to refresh' : ''}</p>
     <section class="card"><ul class="course-list">${courses}</ul></section>
     <p class="muted small">Only you can see your grades. They’re saved to your own planner and never shared with friends. Always check Schoology for official grades.</p>`;
+}
+
+// ---------------------------------------------------------------------------
+// What do I need?
+
+const TARGETS = [97, 93, 90, 87, 85, 83, 80, 77, 75, 73, 70];
+const BIG = /test|exam|assess|summative|major|quiz/i;
+
+function needCalc(course) {
+  const model = gradeModel(course);
+  if (!model) return '';
+  const letters = model.mode === 'letters';
+  // Aim one step up from where you are.
+  const now = model.reported ?? (letters ? letterFor(model.percent) : model.percent);
+  const goals = letters ? GOAL_LETTERS : TARGETS;
+  const goal = letters ? (GOAL_LETTERS[GOAL_LETTERS.indexOf(now) - 1] ?? 'A') : ([...TARGETS].reverse().find((t) => t > now) ?? TARGETS[0]);
+  const cats = model.weighted ? [...model.categories].sort((a, b) => b.weight - a.weight) : [];
+  const cat = cats.find((k) => BIG.test(k.title)) ?? cats[0];
+  return `<form class="need" data-form="need-${esc(course.id)}" data-course="${esc(course.id)}" onsubmit="return false">
+    <p class="need-title">What do I need?</p>
+    <div class="need-fields">
+      <label>Goal <select name="target">${goals.map((t) => `<option value="${t}" ${t === goal ? 'selected' : ''}>${letters ? t : `${t}%`}</option>`).join('')}</select></label>
+      ${cats.length ? `<label>Next <select name="category">${cats.map((k) => `<option value="${esc(k.title)}" ${k === cat ? 'selected' : ''}>${esc(k.title)} (${esc(k.weight)}%)</option>`).join('')}</select></label>` : ''}
+      ${letters ? '' : '<label>Worth <input name="points" type="number" inputmode="numeric" min="1" max="1000" value="100" /> points</label>'}
+    </div>
+    <p class="need-result" aria-live="polite">${needText(model, { goal, category: cat?.title ?? null, points: 100 })}</p>
+  </form>`;
+}
+
+function needText(model, { goal, category, points }) {
+  const what = model.period ? `${esc(model.period)} grade` : 'grade';
+  const next = category ? `the next ${esc(category)} grade` : 'the next assignment';
+  if (model.mode === 'letters') {
+    const r = scoreNeeded(model, { target: letterCutoff(goal), category, points: 100 });
+    let text;
+    if (r.kind === 'need') text = `You’d need about <b>${letterFor(r.percent)}</b> (${Math.ceil(r.percent)}%) on ${next} to bring your ${what} to ${esc(goal)}.`;
+    else if (r.kind === 'safe') text = `Your ${what} stays at ${esc(goal)} or above even with an F on ${next}.`;
+    else text = `Even an A+ on ${next} gets your ${what} to about ${letterFor(r.best)}, short of ${esc(goal)}. It will take a few more good grades.`;
+    const note = model.approximate
+      ? `Schoology shows ${esc(model.reported)}, and these letters work out to ${letterFor(model.percent)}, so this one is a rough guess.`
+      : 'An estimate: Schoology only shows letters here, so this assumes A = 93–100, B = 83–86 and so on, and that each assignment in a category counts the same.';
+    return `${text}<br><small class="muted">${note}</small>`;
+  }
+  const r = scoreNeeded(model, { target: goal, category, points });
+  let text;
+  if (r.kind === 'need') text = `You need about <b>${r.score}/${points}</b> (${r.percent}%) on ${next} to bring your ${what} to ${goal}%.`;
+  else if (r.kind === 'safe') text = `You’ll stay at ${goal}% or above even with a 0 (lowest: ${r.worst}%).`;
+  else text = `Even ${points}/${points} only gets your ${what} to ${r.best}%, short of ${goal}%.`;
+  const note = model.approximate
+    ? `<br><small class="muted">Schoology shows ${esc(model.reported)}%, but the scores here add up to ${model.percent}%. This class may drop scores or count extra credit, so treat this as a guide.</small>`
+    : '';
+  return text + note;
+}
+
+export function updateNeed(form, ctx) {
+  const course = ctx.state.grades?.courses?.find((c) => c.id === form.dataset.course);
+  const model = course && gradeModel(course);
+  const out = form.querySelector('.need-result');
+  if (!model || !out) return;
+  const points = Math.min(1000, Math.max(1, Number(form.points?.value) || 100));
+  const goal = model.mode === 'letters' ? form.target.value : Number(form.target.value);
+  out.innerHTML = needText(model, { goal, category: form.category?.value ?? null, points });
 }
 
 // Small card for Today.

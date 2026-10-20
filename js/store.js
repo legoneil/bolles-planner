@@ -122,8 +122,8 @@ export function allAssignments(s = state) {
 export function saveAssignment(a) {
   update((s) => {
     if (a.source === 'schoology') {
-      const { classId, type, done, hidden, notes, minutes, sessions } = a;
-      s.schoology.overrides[a.id] = { classId, type, done, hidden, notes, minutes, sessions };
+      const { classId, type, done, hidden, notes, minutes, sessions, keepOpen } = a;
+      s.schoology.overrides[a.id] = { classId, type, done, hidden, notes, minutes, sessions, keepOpen };
       return;
     }
     const i = s.assignments.findIndex((x) => x.id === a.id);
@@ -132,9 +132,10 @@ export function saveAssignment(a) {
   });
 }
 
-export function toggleDone(id) {
+// keepOpen: unticked by the student, so a Schoology grade doesn't tick it again.
+export function setDone(id, done) {
   const a = allAssignments().find((x) => x.id === id);
-  if (a) saveAssignment({ ...a, done: !a.done });
+  if (a) saveAssignment({ ...a, done, keepOpen: !done });
 }
 
 // Mark several assignments done at once (clearing an overdue backlog).

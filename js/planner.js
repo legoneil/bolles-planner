@@ -2,6 +2,7 @@
 
 import { SCHOOL_YEAR } from './data/bolles-2026-27.js';
 import { addDays, minutes, todayISO, weekday } from './dates.js';
+import { gradeLinks } from './gradework.js';
 import { buildICS, isAnnouncement } from './ical.js';
 import { getDay, meetingsOn } from './schedule.js';
 import { allAssignments } from './store.js';
@@ -9,7 +10,13 @@ import { className, typeLabel } from './ui.js';
 
 export function makeContext(state, now = new Date()) {
   const profile = state.profile;
-  const assignments = allAssignments(state).filter((a) => !a.hidden && !isAnnouncement(a));
+  const listed = allAssignments(state).filter((a) => !a.hidden && !isAnnouncement(a));
+  // Graded in Schoology counts as done, unless the student unticked it here.
+  const links = gradeLinks(listed, state.grades, profile?.classes);
+  const assignments = listed.map((a) => {
+    const grade = links.get(a.id);
+    return grade ? { ...a, grade, done: a.done || (grade.state !== 'missing' && !a.keepOpen) } : a;
+  });
   return {
     state,
     profile,
@@ -22,13 +29,17 @@ export function makeContext(state, now = new Date()) {
 }
 
 // Work more than a week overdue is usually done already (in Schoology), so
-// it's tucked away instead of shown on Today and in the plan.
+// it's tucked away instead of shown on Today and in the plan, unless
+// Schoology says it's missing.
 export const RECENT_OVERDUE_DAYS = 7;
+
+export const isMissing = (a) => a.grade?.state === 'missing';
 
 export function overdueWork(ctx) {
   const since = addDays(ctx.today, -RECENT_OVERDUE_DAYS);
   const all = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today).sort((a, b) => b.dueDate.localeCompare(a.dueDate));
-  return { all, recent: all.filter((a) => a.dueDate >= since), older: all.filter((a) => a.dueDate < since) };
+  const old = (a) => a.dueDate < since && !isMissing(a);
+  return { all, recent: all.filter((a) => !old(a)), older: all.filter(old) };
 }
 
 export function activitiesOn(date, activities) {
