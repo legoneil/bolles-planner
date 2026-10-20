@@ -32,7 +32,7 @@ const norm = (s) => (s ?? '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const lastName = (t) =>
   norm(
     (t ?? '')
-      .replace(/^(mr|mrs|ms|dr|mx|coach|sra|sr|mme)\.?\s+/i, '')
+      .replace(/^(mr|mrs|ms|dr|mx|coach|sra|sr|mme)(\.\s*|\s+)/i, '')
       .trim()
       .split(/\s+/)
       .pop(),

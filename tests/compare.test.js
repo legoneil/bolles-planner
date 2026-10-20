@@ -40,6 +40,9 @@ test('same section needs the same period and teacher (or name, if a teacher is m
   assert.ok(!sameSection(me.classes[3], friend.classes[3]));
   // Same class at the same time with different teachers: different sections.
   assert.ok(!sameSection({ period: 4, name: 'Civics', teacher: 'Ms. Marks' }, { period: 4, name: 'Civics', teacher: 'Mr. Lee' }));
+  // Capitals, titles and spacing don't matter.
+  for (const t of ['ms. marks', 'MARKS', 'Mrs Marks', 'Ms.Marks']) assert.ok(sameSection({ period: 4, name: 'Civics', teacher: 'Ms. Marks' }, { period: 4, name: 'civics', teacher: t }), t);
+  assert.ok(sameSection({ period: 4, name: 'CIVICS', teacher: '' }, { period: 4, name: 'civics', teacher: '' }));
   // No teacher on one side: the class name decides.
   assert.ok(sameSection({ period: 4, name: 'Civics', teacher: 'Ms. Marks' }, { period: 4, name: 'Civics', teacher: '' }));
 });
