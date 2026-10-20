@@ -3,7 +3,7 @@ import { CLASS_TYPES } from '../store.js';
 import { esc, ordinal } from '../ui.js';
 
 // draft: { step, campus, grade, classes }
-export function renderOnboarding(draft, { accounts = false } = {}) {
+export function renderOnboarding(draft, { accounts = false, invite = null } = {}) {
   if (draft.step === 1) {
     return `
       <section class="onboard">
@@ -12,6 +12,7 @@ export function renderOnboarding(draft, { accounts = false } = {}) {
         <h1>Rotation Planner</h1>
         <p class="lead">Your letter days, classes, homework and tests in one place. Set it up in about a minute.</p>
         <p class="muted small">Made by a Bolles student for Bolles students. Not affiliated with The Bolles School. <a href="privacy.html">Privacy</a></p>
+        ${invite ? `<p class="have-account"><b>${esc(invite.name || 'A friend')}</b> invited you to compare schedules. Set up your planner first (about a minute), then you can add them.</p>` : ''}
         ${accounts ? '<p class="have-account">Already set up on another device? <button class="link-btn" data-action="open-auth" data-mode="signin">Sign in</button></p>' : ''}
         <form data-form="onboard-school" class="stack">
           <fieldset>

@@ -1,6 +1,7 @@
 import { CAMPUSES } from '../data/bolles-2026-27.js';
 import { addDays, formatLongDate, formatRange, relativeDay } from '../dates.js';
 import { classesTogether, compareDay, friendNow } from '../compare.js';
+import { CODE, inviteLink, qrSvg } from '../invite.js';
 import { className, emptyState, esc, letterBadge, ordinal, statusLabel } from '../ui.js';
 
 const nowHHMM = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
@@ -86,10 +87,17 @@ export function renderFriends(ctx, friends, account) {
     </section>
 
     <section class="card code-card">
-      <h2>Your friend code</h2>
-      <p class="friend-code" aria-label="Friend code">${esc(formatCode(friends.me.friend_code))}</p>
-      <div class="btn-row"><button class="btn secondary small" data-action="share-code" data-code="${esc(friends.me.friend_code)}">Share code</button></div>
-      <p class="muted small">Friends type this in to send you a request. You'll be asked to accept.</p>
+      <h2>Invite friends</h2>
+      <p class="muted">Send your invite link by text or any app. Friends tap it and add you in one step. You'll be asked to accept.</p>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn" data-action="share-invite" data-code="${esc(friends.me.friend_code)}" data-name="${esc(friends.me.display_name)}">Send invite link</button>
+      </div>
+      <details class="qr-box">
+        <summary>Show QR code</summary>
+        <div class="qr-wrap">${qrSvg(inviteLink(friends.me.friend_code, friends.me.display_name))}</div>
+        <p class="muted small">Friends point their phone camera at this to add you.</p>
+      </details>
+      <p class="muted small">Or they can type your friend code: <b class="friend-code-inline">${esc(formatCode(friends.me.friend_code))}</b></p>
     </section>
 
     <section class="card">
@@ -183,3 +191,44 @@ const initials = (name) =>
     .slice(0, 2)
     .map((w) => w[0].toUpperCase())
     .join('');
+
+// Opened from an invite link: "Add Neil as a friend?"
+export function renderInvite(ctx, friends, account, invite) {
+  const who = invite.name || 'Your friend';
+  const top = head('Add a friend');
+  if (!CODE.test(invite.code)) return `${top}${emptyState('This invite link looks broken', 'Ask your friend to send it again, or type their friend code on the Friends page.')}`;
+  if (!account || account.status === 'disabled') return `${top}${emptyState('Friends needs accounts', 'Accounts aren’t set up for this planner yet.')}`;
+  if (account.status === 'loading') return `${top}${emptyState('Loading…')}`;
+  const intro = `<p class="invite-who"><span class="avatar" aria-hidden="true">${esc(initials(who))}</span>
+      <span><b>${esc(who)}</b> invited you to compare schedules: classes you share, lunch together and free periods.</span></p>`;
+  if (account.status !== 'signed-in') {
+    return `${top}<section class="card invite-card">${intro}
+      <p class="muted small">Sign in or create an account first. The invite will be waiting.</p>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn" data-action="open-auth" data-mode="signup">Create account</button>
+        <button class="btn secondary" data-action="open-auth" data-mode="signin">Sign in</button>
+      </div></section>`;
+  }
+  if (!friends.me) {
+    if (friends.status !== 'ready' && friends.status !== 'error') return `${top}${emptyState('Loading…')}`;
+    return `${top}<section class="card invite-card">${intro}
+      <form data-form="invite-enable" class="stack" style="margin-top:12px">
+        <input type="hidden" name="code" value="${esc(invite.code)}" />
+        <label>Your name friends will see
+          <input name="name" required maxlength="40" autocomplete="given-name" placeholder="e.g. Sam R." />
+        </label>
+        <p class="muted small">Friends see your name and classes, never your homework, tests, grades or email.</p>
+        <button class="btn" type="submit">Turn on friends and add ${esc(who)}</button>
+      </form>
+      <button class="link-btn small" data-action="invite-dismiss" style="margin-top:10px">Not now</button></section>`;
+  }
+  if (friends.me.friend_code === invite.code) {
+    return `${top}<section class="card invite-card"><p><b>This is your own invite link.</b> Send it to friends so they can add you.</p>
+      <button class="btn secondary" data-nav="#/friends" style="margin-top:12px">Go to Friends</button></section>`;
+  }
+  return `${top}<section class="card invite-card">${intro}
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn" data-action="invite-accept" data-code="${esc(invite.code)}">Add ${esc(who)}</button>
+      <button class="btn secondary" data-action="invite-dismiss">Not now</button>
+    </div></section>`;
+}

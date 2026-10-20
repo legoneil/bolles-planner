@@ -61,7 +61,9 @@ import { clearGrades, extension, initGrades, onExtensionChange, refreshGradesNow
 import { clearReminders, disablePush, enablePush, initPush, onPushChange, push, sendTestPush, setNotifyPref } from './notify.js';
 import { renderDay } from './views/day.js';
 import { renderGrades } from './views/grades.js';
-import { renderFriendCompare, renderFriends } from './views/friends.js';
+import { renderFriendCompare, renderFriends, renderInvite } from './views/friends.js';
+import { clearPendingInvite, inviteHash, inviteLink, parseInvite, pendingInvite, savePendingInvite } from './invite.js';
+import { esc } from './ui.js';
 import { renderMonth } from './views/month.js';
 import { renderOnboarding } from './views/onboarding.js';
 import { renderPlan } from './views/plan.js';
@@ -89,13 +91,40 @@ function route() {
   return { name, arg };
 }
 
+const TYPED = 'form[data-form] input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]), form[data-form] textarea';
+
+function typedDrafts() {
+  return [...$view.querySelectorAll(TYPED)]
+    .filter((el) => el.name && el.value !== el.defaultValue)
+    .map((el) => ({ form: el.form.dataset.form, name: el.name, value: el.value, focused: el === document.activeElement, caret: el.selectionStart }));
+}
+
+function restoreDrafts(drafts) {
+  for (const d of drafts) {
+    const el = $view.querySelector(`form[data-form="${CSS.escape(d.form)}"] [name="${CSS.escape(d.name)}"]`);
+    if (!el || el.value !== el.defaultValue) continue;
+    el.value = d.value;
+    if (d.focused) {
+      el.focus();
+      try {
+        el.setSelectionRange(d.caret, d.caret);
+      } catch {
+        // Not a text field (e.g. date).
+      }
+    }
+  }
+}
+
 function render() {
   const state = getState();
   applyTheme(state.settings.theme);
   const onboarding = !state.profile;
+  // An invite link: remember it, so it survives setup and signing in.
+  const [, route0, code0, name0] = location.hash.split('/');
+  if (route0 === 'add') savePendingInvite(parseInvite(code0, name0));
   document.body.classList.toggle('onboarding', onboarding);
   if (onboarding) {
-    $view.innerHTML = renderOnboarding(ui.onboarding, { accounts: accountsEnabled && account.status !== 'signed-in' });
+    $view.innerHTML = renderOnboarding(ui.onboarding, { accounts: accountsEnabled && account.status !== 'signed-in', invite: pendingInvite() });
     return;
   }
   const ctx = { ...makeContext(state), account, extension, push };
@@ -128,6 +157,10 @@ function render() {
       html = renderFriends(ctx, friends, account);
       loadFriends();
       break;
+    case 'add':
+      html = renderInvite(ctx, friends, account, parseInvite(code0, name0));
+      loadFriends();
+      break;
     case 'friend': {
       const [, , id, date] = location.hash.split('/');
       html = renderFriendCompare(ctx, friends, id, valid(date) ? date : ctx.today);
@@ -137,11 +170,24 @@ function render() {
     default:
       html = renderDay(ctx, ctx.today);
   }
-  const tab = name === 'day' || name === 'grades' || name === 'plan' ? 'today' : name === 'friend' ? 'friends' : name;
+  // A waiting invite (from before setup or sign-in) shows on Today.
+  const invite = pendingInvite();
+  if (invite && (name === 'today' || name === '#' || !route0) && account.status === 'signed-in') {
+    html = html.replace('</header>', `</header><section class="card invite-banner"><p><b>${esc(invite.name || 'A friend')}</b> invited you to compare schedules.</p>
+      <div class="btn-row"><button class="btn small" data-nav="${esc(inviteHash(invite))}">See invite</button>
+      <button class="btn secondary small" data-action="invite-dismiss">Dismiss</button></div></section>`);
+  }
+  const tab = name === 'day' || name === 'grades' || name === 'plan' ? 'today' : name === 'friend' || name === 'add' ? 'friends' : name;
   for (const a of $nav.querySelectorAll('a')) a.toggleAttribute('aria-current', a.dataset.tab === tab);
   const scroll = window.scrollY;
+  const sameRoute = ui.lastRoute === location.hash;
+  // Keep what's been typed into forms when the page redraws (sync, timers).
+  const drafts = sameRoute ? typedDrafts() : [];
+  // Fade in only when arriving on a page, not on every redraw.
+  $view.classList.toggle('enter', !sameRoute);
   $view.innerHTML = html;
-  if (ui.lastRoute === location.hash) window.scrollTo(0, scroll);
+  restoreDrafts(drafts);
+  if (sameRoute) window.scrollTo(0, scroll);
   ui.lastRoute = location.hash;
 }
 
@@ -374,18 +420,25 @@ const actions = {
     if (!confirm('Stop sharing your schedule and remove all your friends? You can turn friends on again later, but you will get a new code.')) return;
     friendAction(leaveFriends, 'Friends turned off');
   },
-  'share-code': async (el) => {
-    const code = el.dataset.code;
-    const text = `Add me on Rotation Planner! My friend code is ${code.slice(0, 4)}-${code.slice(4)}. ${location.origin}${location.pathname}#/friends`;
+  'share-invite': async (el) => {
+    const url = inviteLink(el.dataset.code, el.dataset.name);
+    const first = (el.dataset.name ?? '').trim().split(/\s+/)[0] || 'A friend';
+    const text = `${first} invited you to compare schedules on Rotation Planner.`;
     try {
-      if (navigator.share) await navigator.share({ text });
+      if (navigator.share) await navigator.share({ title: 'Rotation Planner', text, url });
       else {
-        await navigator.clipboard.writeText(text);
-        toast('Copied. Paste it to a friend.');
+        await navigator.clipboard.writeText(`${text} ${url}`);
+        toast('Invite link copied. Paste it to a friend.');
       }
     } catch {
       // Share sheet dismissed.
     }
+  },
+  'invite-accept': (el) => acceptInvite(el.dataset.code),
+  'invite-dismiss': () => {
+    clearPendingInvite();
+    if (route().name === 'add') location.hash = '#/today';
+    else render();
   },
   'open-auth': (el) => openSheet(authForm(el.dataset.mode, { email: $sheet.querySelector('[name=email]')?.value ?? '' })),
   'sync-now': () => sync(),
@@ -407,6 +460,17 @@ const actions = {
   },
 };
 
+async function acceptInvite(code) {
+  try {
+    const res = await addFriend(code);
+    clearPendingInvite();
+    toast(res.message);
+    location.hash = '#/friends';
+  } catch (e) {
+    toast(e.message);
+  }
+}
+
 async function friendAction(fn, done) {
   try {
     await fn();
@@ -422,6 +486,17 @@ const forms = {
     button.disabled = true;
     await friendAction(() => enableFriends(form.name.value.trim()), 'Friends turned on');
     button.disabled = false;
+  },
+  'invite-enable': async (form) => {
+    const button = form.querySelector('[type=submit]');
+    button.disabled = true;
+    try {
+      await enableFriends(form.name.value.trim());
+      await acceptInvite(form.code.value);
+    } catch (e) {
+      toast(e.message);
+      button.disabled = false;
+    }
   },
   'friends-rename': (form) => friendAction(() => enableFriends(form.name.value.trim()), 'Name saved'),
   'friend-add': async (form) => {
@@ -572,7 +647,8 @@ const forms = {
     update((s) => {
       s.profile = { campus: ui.onboarding.campus, grade: ui.onboarding.grade, classes, closures: {} };
     });
-    location.hash = '#/today';
+    const invite = pendingInvite();
+    location.hash = invite ? inviteHash(invite) : '#/today';
   },
 };
 
