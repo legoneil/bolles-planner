@@ -7,7 +7,11 @@ Bolles turns off Schoology's API for students, so the planner can't fetch grades
 - Grades go only to your own planner account (using a private link key the planner gives the extension, which can do nothing except save your grades), so your phone shows them too. Friends never see them.
 - Student-made, not affiliated with Bolles or Schoology.
 
-## Install (about 2 minutes, on a laptop with Chrome)
+## Install from the Chrome Web Store
+
+Once it's published (see [CHROME_WEB_STORE.md](CHROME_WEB_STORE.md)), install it from its store page in Chrome or Edge with one click. It updates automatically.
+
+## Install by hand (about 2 minutes, on a laptop with Chrome)
 
 1. Download the planner's code: open https://github.com/legoneil/rotation-planner, switch to the `claude/zealous-fermat-gt2k97` branch, click **Code → Download ZIP**, and unzip it.
 2. In Chrome, go to `chrome://extensions`.

@@ -4,27 +4,34 @@
     <meta charset="utf-8" />
     <title>Rotation Planner Grades</title>
     <style>
-      :root { color-scheme: light dark; --accent: #1f4e9c; }
-      body { font: 14px/1.4 system-ui, -apple-system, sans-serif; margin: 0; padding: 14px; width: 290px; }
-      h1 { font-size: 15px; margin: 0 0 6px; }
+      :root { color-scheme: light dark; --navy: #13284f; --text: #0f1626; --muted: #727786; --line: rgb(15 22 38 / 10%); --bg: #ffffff; --soft: #f3f1ed; --ok: #18804a; --bad: #c4372a; }
+      @media (prefers-color-scheme: dark) { :root { --text: #f1f2f5; --muted: #8b91a0; --line: rgb(255 255 255 / 10%); --bg: #13161d; --soft: #1b1f28; --ok: #5fd394; --bad: #ff7d70; } }
+      * { box-sizing: border-box; }
+      body { font: 14px/1.45 -apple-system, 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 16px; width: 300px; background: var(--bg); color: var(--text); }
+      header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+      header img { width: 32px; height: 32px; }
+      h1 { font-size: 15px; margin: 0; letter-spacing: -0.01em; }
       p { margin: 6px 0; }
-      .muted { color: #6b7280; font-size: 12px; }
-      .ok { color: #16803c; font-weight: 600; }
-      .bad { color: #c0392b; font-weight: 600; }
+      .muted { color: var(--muted); font-size: 12px; }
+      .ok { color: var(--ok); font-weight: 600; }
+      .bad { color: var(--bad); font-weight: 600; }
       [hidden] { display: none !important; }
-      button { display: block; width: 100%; margin-top: 8px; padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; background: transparent; font: inherit; cursor: pointer; }
-      button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+      button { display: block; width: 100%; margin-top: 8px; padding: 9px 12px; border-radius: 10px; border: 0; background: var(--soft); color: var(--text); font: inherit; font-weight: 600; cursor: pointer; }
+      button:hover { filter: brightness(0.97); }
+      button.primary { background: var(--navy); color: #fff; }
+      @media (prefers-color-scheme: dark) { button.primary { background: #c8d6f5; color: #0a1020; } }
+      .status { padding: 10px 12px; border-radius: 10px; background: var(--soft); }
     </style>
   </head>
   <body>
-    <h1>Rotation Planner Grades <span id="version" class="muted"></span></h1>
-    <p id="status" class="muted">Checking your Schoology grades…</p>
+    <header><img src="icons/128.png" alt="" /><div><h1>Rotation Planner Grades</h1><span id="version" class="muted"></span></div></header>
+    <p id="status" class="muted status">Checking your Schoology grades…</p>
     <p id="link" class="muted"></p>
     <button class="primary" id="refresh">Refresh now</button>
     <button id="open-grades">Open my Schoology grades</button>
     <button id="open-planner">Open Rotation Planner</button>
     <button id="copy-debug" hidden>Copy debug info for Claude</button>
-    <p class="muted">Updates every 30 minutes while Chrome is open and you're logged in to Schoology.</p>
+    <p class="muted">Updates every 30 minutes while your browser is open and you're logged in to Schoology.</p>
     <p class="muted">Student-made, not an official Bolles or Schoology app. It only reads pages you can already see, and only shares them with your own planner.</p>
     <script src="popup.js"></script>
   </body>

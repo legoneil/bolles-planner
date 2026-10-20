@@ -1,17 +1,38 @@
 {
   "manifest_version": 3,
   "name": "Rotation Planner Grades",
-  "version": "0.2.3",
-  "description": "Brings your Schoology grades into Rotation Planner. Student-made; not affiliated with Bolles or Schoology.",
+  "version": "1.0.0",
+  "description": "Keeps your Schoology grades up to date in Rotation Planner, a student-made planner for Bolles students.",
+  "homepage_url": "https://legoneil.github.io/rotation-planner/",
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/16.png",
+      "48": "icons/48.png",
+      "128": "icons/128.png"
+    }
+  },
   "permissions": [
     "storage",
     "alarms",
     "offscreen"
   ],
+  "host_permissions": [
+    "https://bolles.schoology.com/*",
+    "https://fknaqhlakprrbfhmzsqf.supabase.co/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
-        "https://*.schoology.com/*"
+        "https://bolles.schoology.com/*"
       ],
       "js": [
         "parse-grades.js",
@@ -22,33 +43,12 @@
     },
     {
       "matches": [
-        "https://legoneil.github.io/rotation-planner/*",
-        "https://legoneil.github.io/bolles-planner/*"
+        "https://legoneil.github.io/rotation-planner/*"
       ],
       "js": [
         "planner.js"
       ],
       "run_at": "document_start"
     }
-  ],
-  "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/16.png",
-      "48": "icons/48.png",
-      "128": "icons/128.png"
-    }
-  },
-  "icons": {
-    "16": "icons/16.png",
-    "48": "icons/48.png",
-    "128": "icons/128.png"
-  },
-  "host_permissions": [
-    "https://*.schoology.com/*",
-    "https://*.supabase.co/*"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  }
+  ]
 }

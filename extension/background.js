@@ -42,7 +42,7 @@ async function parse(html) {
 // Ask an open Schoology tab to re-read the grades page. Tabs opened before
 // the extension was installed have no content script; skip those.
 async function refreshThroughTab() {
-  const tabs = await chrome.tabs.query({ url: 'https://*.schoology.com/*' });
+  const tabs = await chrome.tabs.query({ url: 'https://bolles.schoology.com/*' });
   for (const tab of tabs) {
     try {
       // Any answer (ok, logged out, error) means the tab handled it.
@@ -57,13 +57,12 @@ async function refreshThroughTab() {
 let running = null;
 function refresh({ maxAgeMs = 60_000 } = {}) {
   running ??= (async () => {
-    const { lastAttempt, grades } = await chrome.storage.local.get(['lastAttempt', 'grades']);
+    const { lastAttempt } = await chrome.storage.local.get('lastAttempt');
     if (lastAttempt && Date.now() - lastAttempt < maxAgeMs) return;
     await chrome.storage.local.set({ lastAttempt: Date.now() });
     if (await refreshThroughTab()) return;
 
-    const host = grades?.domain ?? DEFAULT_DOMAIN;
-    if (!/^[a-z0-9-]+\.schoology\.com$/.test(host)) return;
+    const host = DEFAULT_DOMAIN;
     const url = `https://${host}/grades/grades`;
     try {
       // Without the login, Schoology redirects to Microsoft sign-in; don't follow it.

@@ -4,6 +4,8 @@
 // directly (see background.js).
 
 const ORIGIN = location.origin;
+// The planner's account server; the extension sends grades nowhere else.
+const SERVER = 'https://fknaqhlakprrbfhmzsqf.supabase.co';
 
 async function send() {
   const { grades, status, link } = await chrome.storage.local.get(['grades', 'status', 'link']);
@@ -27,7 +29,7 @@ window.addEventListener('message', async (e) => {
   if (e.source !== window || e.origin !== ORIGIN || e.data?.source !== 'bolles-planner-app') return;
   const msg = e.data;
   if (msg.type === 'request-grades') send();
-  else if (msg.type === 'link' && /^[0-9a-f]{64}$/.test(msg.token) && typeof msg.userId === 'string' && /^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(msg.url)) {
+  else if (msg.type === 'link' && /^[0-9a-f]{64}$/.test(msg.token) && typeof msg.userId === 'string' && msg.url === SERVER) {
     await chrome.storage.local.set({ link: { token: msg.token, userId: msg.userId, url: msg.url, anonKey: String(msg.anonKey ?? '') } });
   } else if (msg.type === 'unlink') {
     await chrome.storage.local.remove('link');

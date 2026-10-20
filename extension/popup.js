@@ -12,7 +12,7 @@ $('version').textContent = `v${chrome.runtime.getManifest().version}`;
 function show({ grades, status, layout, link }) {
   const el = $('status');
   if (status) {
-    el.className = status.ok ? 'ok' : 'bad';
+    el.className = `status ${status.ok ? 'ok' : 'bad'}`;
     el.textContent = `${status.message} (${ago(status.at)})`;
   }
   $('link').textContent = link?.token
