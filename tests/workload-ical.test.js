@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { buildICS, guessType, parseICS, schoologyToAssignments } from '../js/ical.js';
+import { buildICS, guessType, matchType, parseICS, schoologyToAssignments } from '../js/ical.js';
 import { overloadAlerts, testWarnings } from '../js/workload.js';
 
 const t = (id, dueDate, type = 'test') => ({ id, title: id, type, dueDate, classId: null });
@@ -46,12 +46,18 @@ const FEED = [
   'SUMMARY:Homecoming pep rally',
   'URL:https://bolles.schoology.com/event/125',
   'END:VEVENT',
+  'BEGIN:VEVENT',
+  'UID:event-126@bolles.schoology.com',
+  'DTSTART;VALUE=DATE:20261026',
+  'SUMMARY:Unit 4 Test',
+  'URL:https://bolles.schoology.com/event/126',
+  'END:VEVENT',
   'END:VCALENDAR',
 ].join('\r\n');
 
 test('parses a Schoology feed', () => {
   const events = parseICS(FEED);
-  assert.equal(events.length, 3);
+  assert.equal(events.length, 4);
   assert.equal(events[0].summary, 'Chapter 5 Test');
   assert.equal(events[0].description, 'Biology - Hicks\nStudy sections 5.1-5.4, plus the lab notes');
   assert.deepEqual(events[0].dtstart, { date: '2026-10-22', time: null });
@@ -64,7 +70,9 @@ test('parses a Schoology feed', () => {
   assert.equal(items[0].url, 'https://bolles.schoology.com/assignment/123');
   assert.equal(items[1].type, 'quiz');
   assert.equal(items[1].classId, null);
-  assert.equal(items[2].type, 'other', 'calendar events are not homework');
+  assert.equal(items.length, 3, 'announcement-style events are left out');
+  assert.ok(!items.some((i) => i.title === 'Homecoming pep rally'));
+  assert.equal(items[2].type, 'test', 'events that name work are kept');
 });
 
 test('guesses assignment types', () => {
@@ -75,6 +83,8 @@ test('guesses assignment types', () => {
   assert.equal(guessType('Worksheet 4'), 'homework');
   assert.equal(guessType('Unit 3 test corrections'), 'homework');
   assert.equal(guessType('Quiz retake'), 'homework');
+  assert.equal(matchType('Worksheet 4'), 'homework');
+  assert.equal(matchType('Spirit day'), null);
 });
 
 test('export round-trips through the parser', () => {

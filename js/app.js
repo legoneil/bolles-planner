@@ -79,7 +79,7 @@ const $sheet = document.getElementById('sheet');
 const $toast = document.getElementById('toast');
 
 const ui = {
-  todo: { classId: 'all', show: 'open' },
+  todo: { classId: 'all', show: 'open', older: false },
   onboarding: { step: 1, campus: null, grade: null, classes: defaultClasses() },
   sheetItem: null,
 };
@@ -325,6 +325,10 @@ const actions = {
   },
   'todo-show': (el) => {
     ui.todo.show = el.dataset.show;
+    render();
+  },
+  'todo-older': () => {
+    ui.todo.older = !ui.todo.older;
     render();
   },
   'add-class': () => {

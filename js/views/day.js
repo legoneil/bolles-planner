@@ -1,5 +1,5 @@
 import { addDays, diffDays, formatLongDate, formatRange, formatTime, minutes, nowMinutes, relativeDay } from '../dates.js';
-import { plannerDay } from '../planner.js';
+import { overdueWork, plannerDay } from '../planner.js';
 import { gradesCard } from './grades.js';
 import { tonightCard } from './plan.js';
 import { nowAndNext } from '../schedule.js';
@@ -116,8 +116,8 @@ function renderUpcoming(ctx) {
   const soon = ctx.assignments
     .filter((a) => !a.done && (a.type === 'test' || a.type === 'quiz' || a.type === 'project') && a.dueDate > ctx.today && a.dueDate <= horizon)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
-  // Most recent first, and only a few: old Schoology items pile up here.
-  const overdue = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today).sort((a, b) => b.dueDate.localeCompare(a.dueDate));
+  // Only the past week, and only a few: older items are in To-Do.
+  const overdue = overdueWork(ctx).recent;
   const shown = overdue.slice(0, 3);
   return `
     ${overdue.length ? `<section class="card"><div class="card-head"><h2>Overdue <span class="count">${overdue.length}</span></h2>

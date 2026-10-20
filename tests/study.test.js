@@ -91,7 +91,7 @@ test('overdue work is not piled onto today', () => {
   const recent = a('late', 'homework', '2026-10-30');
   const plan = planWork(ctx([...old, recent, a('hw', 'homework', '2026-11-03')]));
   assert.deepEqual(plan.days.get('2026-11-02').sessions.map((s) => s.assignment.id), ['hw']);
-  assert.equal(plan.overdue, 41);
+  assert.equal(plan.overdue, 1, 'only last week’s overdue work is counted');
 });
 
 test('calendar events ("other") are only planned when given a time', () => {

@@ -4,7 +4,7 @@
 // free periods and study halls at school, plus the evening after school and
 // activities, capped by the student's nightly study time.
 
-import { activitiesOn } from './planner.js';
+import { activitiesOn, overdueWork } from './planner.js';
 import { addDays, minutes, nowMinutes, weekday } from './dates.js';
 import { getDay } from './schedule.js';
 
@@ -89,13 +89,13 @@ function spread(days, count) {
 }
 
 // The plan from `ctx.today` for the next few weeks. Overdue work isn't
-// planned (it's often done already, e.g. finished in Schoology); it's counted
-// so the plan can point to it.
+// planned (it's often done already, e.g. finished in Schoology); last week's
+// is counted so the plan can point to it.
 // Returns { days: Map(date -> { capacity, sessions, used, over }), unscheduled, overdue }
 export function planWork(ctx, { budget = ctx.state?.settings?.studyBudget ?? DEFAULT_BUDGET } = {}) {
   const today = ctx.today;
   const nowMin = ctx.now ? nowMinutes(ctx.now) : null;
-  const overdue = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < today).length;
+  const overdue = overdueWork(ctx).recent.length;
   // Due today is due in class: too late to plan.
   const work = ctx.assignments
     .filter((a) => !a.done && a.dueDate && a.dueDate > today && a.dueDate <= addDays(today, HORIZON_DAYS))

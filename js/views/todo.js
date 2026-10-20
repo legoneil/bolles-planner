@@ -1,7 +1,8 @@
 import { addDays, startOfWeek } from '../dates.js';
+import { RECENT_OVERDUE_DAYS } from '../planner.js';
 import { assignmentItem, className, emptyState, esc } from '../ui.js';
 
-export function renderTodo(ctx, filter = { classId: 'all', show: 'open' }) {
+export function renderTodo(ctx, filter = { classId: 'all', show: 'open', older: false }) {
   const t = ctx.today;
   let items = ctx.assignments;
   if (filter.classId === 'tests') items = items.filter((a) => a.type === 'test' || a.type === 'quiz');
@@ -10,8 +11,11 @@ export function renderTodo(ctx, filter = { classId: 'all', show: 'open' }) {
   const open = items.filter((a) => !a.done).sort(byDue);
   const done = items.filter((a) => a.done).sort((a, b) => byDue(b, a));
   const endOfWeek = addDays(startOfWeek(t), 6);
+  const since = addDays(t, -RECENT_OVERDUE_DAYS);
+  // Older overdue work is usually done in Schoology already: folded away.
+  const older = open.filter((a) => a.dueDate && a.dueDate < since).reverse();
   const groups = [
-    ['Overdue', open.filter((a) => a.dueDate && a.dueDate < t)],
+    ['Overdue', open.filter((a) => a.dueDate && a.dueDate >= since && a.dueDate < t).reverse()],
     ['Today', open.filter((a) => a.dueDate === t)],
     ['Tomorrow', open.filter((a) => a.dueDate === addDays(t, 1))],
     ['Later this week', open.filter((a) => a.dueDate > addDays(t, 1) && a.dueDate <= endOfWeek)],
@@ -34,6 +38,17 @@ export function renderTodo(ctx, filter = { classId: 'all', show: 'open' }) {
   const list = (arr, showDate = true) =>
     `<ul class="assignments">${arr.map((a) => assignmentItem(a, ctx.classesById, { showDate, today: t })).join('')}</ul>`;
 
+  const olderCard = older.length
+    ? `<section class="card older-card">
+        <div class="card-head">
+          <button class="link-btn" data-action="todo-older" aria-expanded="${Boolean(filter.older)}">${filter.older ? 'Hide' : 'Show'} ${older.length} older overdue ${older.length === 1 ? 'item' : 'items'}</button>
+          <button class="link-btn small" data-action="clear-overdue">Mark all done</button>
+        </div>
+        <p class="muted small">More than a week overdue. If you’ve done them in Schoology, mark them done here.</p>
+        ${filter.older ? list(older) : ''}
+      </section>`
+    : '';
+
   const body =
     filter.show === 'done'
       ? done.length
@@ -43,7 +58,7 @@ export function renderTodo(ctx, filter = { classId: 'all', show: 'open' }) {
         ? groups
             .filter(([, arr]) => arr.length)
             .map(([title, arr]) => `<section class="card"><h2>${title} <span class="count">${arr.length}</span></h2>${list(arr, title !== 'Today' && title !== 'Tomorrow')}</section>`)
-            .join('')
+            .join('') + olderCard
         : emptyState('All caught up', 'Tap <b>+</b> to add homework, a test or a project, or connect Schoology in Settings.');
 
   return `

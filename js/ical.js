@@ -56,12 +56,12 @@ const TYPE_PATTERNS = [
   ['essay', /\b(essays?|papers?|drafts?|writing)\b/i],
   ['lab', /\b(labs?|laboratory)\b/i],
   ['reading', /\b(read|reading|chapters?)\b/i],
+  ['homework', /\b(homework|hw|worksheets?|problems?|problem sets?|assignments?|due)\b/i],
 ];
 
-export function guessType(title) {
-  for (const [type, re] of TYPE_PATTERNS) if (re.test(title)) return type;
-  return 'homework';
-}
+// The type a title clearly names, or null.
+export const matchType = (title) => TYPE_PATTERNS.find(([, re]) => re.test(title))?.[0] ?? null;
+export const guessType = (title) => matchType(title) ?? 'homework';
 
 // Best-effort match of a Schoology item to one of the student's classes.
 export function guessClass(event, classes) {
@@ -83,9 +83,17 @@ export function guessClass(event, classes) {
 }
 
 // Convert parsed feed events into planner assignments.
+// Calendar events (not assignments) link to /event/ in Schoology. Most are
+// announcements (spirit days, club meetings); keep only the ones that name
+// work, like "Unit 4 Test".
+const isEvent = (e) => /\/event\//.test(e.url ?? extractUrl(e.description) ?? '');
+// The same test for items imported before announcements were left out.
+export const isAnnouncement = (a) => a.source === 'schoology' && /\/event\//.test(a.url ?? '') && !matchType(a.title);
+
 export function schoologyToAssignments(events, classes) {
   return events
     .filter((e) => e.summary && e.dtstart?.date)
+    .filter((e) => !isEvent(e) || matchType(e.summary))
     .map((e) => ({
       id: `sgy:${e.uid ?? `${e.summary}|${e.dtstart.date}`}`,
       uid: e.uid ?? null,
@@ -93,8 +101,7 @@ export function schoologyToAssignments(events, classes) {
       title: e.summary.trim(),
       notes: (e.description ?? '').trim(),
       url: e.url ?? extractUrl(e.description),
-      // Calendar events (not assignments) link to /event/ in Schoology.
-      type: /\/event\//.test(e.url ?? extractUrl(e.description) ?? '') ? 'other' : guessType(e.summary),
+      type: guessType(e.summary),
       classId: guessClass(e, classes),
       dueDate: e.dtstart.date,
       dueTime: e.dtstart.time,

@@ -2,14 +2,14 @@
 
 import { SCHOOL_YEAR } from './data/bolles-2026-27.js';
 import { addDays, minutes, todayISO, weekday } from './dates.js';
-import { buildICS } from './ical.js';
+import { buildICS, isAnnouncement } from './ical.js';
 import { getDay, meetingsOn } from './schedule.js';
 import { allAssignments } from './store.js';
 import { className, typeLabel } from './ui.js';
 
 export function makeContext(state, now = new Date()) {
   const profile = state.profile;
-  const assignments = allAssignments(state).filter((a) => !a.hidden);
+  const assignments = allAssignments(state).filter((a) => !a.hidden && !isAnnouncement(a));
   return {
     state,
     profile,
@@ -19,6 +19,16 @@ export function makeContext(state, now = new Date()) {
     today: todayISO(now),
     now,
   };
+}
+
+// Work more than a week overdue is usually done already (in Schoology), so
+// it's tucked away instead of shown on Today and in the plan.
+export const RECENT_OVERDUE_DAYS = 7;
+
+export function overdueWork(ctx) {
+  const since = addDays(ctx.today, -RECENT_OVERDUE_DAYS);
+  const all = ctx.assignments.filter((a) => !a.done && a.dueDate && a.dueDate < ctx.today).sort((a, b) => b.dueDate.localeCompare(a.dueDate));
+  return { all, recent: all.filter((a) => a.dueDate >= since), older: all.filter((a) => a.dueDate < since) };
 }
 
 export function activitiesOn(date, activities) {
