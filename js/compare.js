@@ -38,11 +38,14 @@ const lastName = (t) =>
       .pop(),
   );
 
-// Same section = same period, and the same teacher or the same class name.
+// Same section = same period and the same teacher. Different teachers are
+// different sections even when the class name matches; the name is only
+// used when one of you hasn't filled in a teacher.
 export function sameSection(a, b) {
   if (!a || !b || Number(a.period) !== Number(b.period)) return false;
   const ta = lastName(a.teacher);
-  if (ta && ta === lastName(b.teacher)) return true;
+  const tb = lastName(b.teacher);
+  if (ta && tb) return ta === tb;
   return Boolean(norm(a.name)) && norm(a.name) === norm(b.name);
 }
 

@@ -20,7 +20,7 @@ const friend = {
   grade: 10,
   classes: [
     { period: 1, name: 'Bio (AP)', teacher: 'Hicks', room: 'S204', lunch: 'second' }, // same section, different name
-    { period: 2, name: 'English 10', teacher: 'Mrs. Crotty', lunch: 'second' }, // same name, different teacher: counts
+    { period: 2, name: 'English 10', teacher: '', lunch: 'second' }, // same name, no teacher entered: counts
     { period: 3, name: 'Spanish III', teacher: 'Sra. Garcia', lunch: 'second' },
     { period: 4, name: 'Chemistry', teacher: 'Dr. Li', lunch: 'first' }, // same class, different period
   ],
@@ -33,11 +33,15 @@ test('shared schedule keeps only what friends need', () => {
   assert.equal(JSON.stringify(s).includes('#f00'), false);
 });
 
-test('same section needs the same period and teacher or name', () => {
+test('same section needs the same period and teacher (or name, if a teacher is missing)', () => {
   assert.ok(sameSection(me.classes[0], friend.classes[0]));
   assert.ok(sameSection(me.classes[1], friend.classes[1]));
   assert.ok(!sameSection(me.classes[2], friend.classes[2]));
   assert.ok(!sameSection(me.classes[3], friend.classes[3]));
+  // Same class at the same time with different teachers: different sections.
+  assert.ok(!sameSection({ period: 4, name: 'Civics', teacher: 'Ms. Marks' }, { period: 4, name: 'Civics', teacher: 'Mr. Lee' }));
+  // No teacher on one side: the class name decides.
+  assert.ok(sameSection({ period: 4, name: 'Civics', teacher: 'Ms. Marks' }, { period: 4, name: 'Civics', teacher: '' }));
 });
 
 test('classes together, with their letter days', () => {

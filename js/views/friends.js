@@ -179,7 +179,7 @@ export function renderFriendCompare(ctx, friends, id, date) {
             .map((t) => `<li><b>P${t.period} ${esc(className(t.mine))}</b>${t.mine.teacher ? ` · ${esc(t.mine.teacher)}` : ''} <span class="muted small">(${t.letters.join(', ')} days)</span></li>`)
             .join('')}</ul>`
         : '<p class="muted">No classes together.</p>'}
-      <p class="muted small" style="margin-top:8px">Matched by period plus teacher or class name, so make sure your classes have teachers filled in.</p>
+      <p class="muted small" style="margin-top:8px">Based on the period and teacher you each entered. If a teacher is missing, the class name is used instead.</p>
     </section>
     <button class="link-btn danger small" data-action="friend-remove" data-id="${esc(id)}" data-name="${esc(f.display_name)}">Remove ${esc(f.display_name)} as a friend</button>`;
 }
